@@ -6,7 +6,7 @@
 <title>Ochane · Paris</title>
 <meta name="description" content="Ochane : le guide visuel des villes, quartier par quartier. Restaurants, monuments, hôtels, sorties, boutiques, agenda et parcours.">
 <meta name="theme-color" content="#0D2B52">
-<meta name="ochane-build" content="2026-10-16-fiches-monuments-v1">
+<meta name="ochane-build" content="2026-10-16-fiches-monuments-v3">
 <meta property="og:title" content="Ochane">
 <meta property="og:description" content="Le guide visuel des villes, quartier par quartier.">
 <meta property="og:type" content="website">
@@ -1213,6 +1213,8 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   var FAVKEY = "ochane-favoris", favs = {};
   try { favs = JSON.parse(localStorage.getItem(FAVKEY) || "{}") || {}; } catch (e) { favs = {}; }
   function saveFavs() { try { localStorage.setItem(FAVKEY, JSON.stringify(favs)); } catch (e) {} }
+  var DETAILS = window.OCHANE_DETAILS || {};
+  function hasDetails(x) { return !!DETAILS[x.arr + "|" + x.name]; }
   function favId(x) { return x.arr + "|" + x.name; }
   function favCount() { return Object.keys(favs).length; }
 
@@ -1334,7 +1336,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
       '<div class="tx"><h3><button type="button" data-open="' + x.id + '">' + esc(x.name) + "</button></h3>" +
       '<p class="sub"><i>' + esc(SHORT[x.cat]) + "</i>" + (x.price ? ' · <span' + (free ? ' class="free"' : "") + (tier ? ' title="' + tier + '"' : "") + ">" + esc(x.price) + "</span>" : "") +
       (showArr ? " · " + ord(x.arr) : "") + "</p>" +
-      (x.flag === "f" ? '<span class="flag f">Fermé ou en travaux</span>' : x.flag === "v" ? '<span class="flag v">À vérifier</span>' : "") +
+      (x.flag === "f" ? '<span class="flag f">Fermé ou en travaux</span>' : x.flag === "v" && !hasDetails(x) ? '<span class="flag v">À vérifier</span>' : "") +
       '<p class="metro"><span class="m" aria-hidden="true">M</span><span>' + esc(x.metro) + "</span></p></div>" +
       '<button type="button" class="fav" data-fav="' + esc(favId(x)) + '" aria-pressed="' + (favs[favId(x)] ? "true" : "false") + '" aria-label="Ajouter ' + esc(x.name) + ' aux favoris">' + HEART + "</button></li>";
   }
@@ -1511,7 +1513,6 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     return "<dt>" + label + "</dt>" + (val ? "<dd>" + val + "</dd>" : '<dd class="nr">Non renseigné</dd>');
   }
   /* Fiches détaillées : données dans data/place-details.js (voir la structure en tête de ce fichier) */
-  var DETAILS = window.OCHANE_DETAILS || {};
   function fmtDate(iso) {
     var d = new Date(iso + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
   }
@@ -1521,18 +1522,18 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   function richBody(D) {
     var o = "", ph = D.photo && D.photo.src && D.photo.credit && D.photo.license ? D.photo : null;
     if (ph) {
-      o += '<figure class="ph-fig"><img src="' + esc(ph.src) + '" alt="' + esc(ph.alt || "") + '" loading="lazy"><figcaption>Photo : ' + esc(ph.credit) + " · " + esc(ph.license) +
-        (safeUrl(ph.source) ? ' · <a href="' + esc(ph.source) + '" target="_blank" rel="noopener noreferrer">Source</a>' : "") + "</figcaption></figure>";
+      o += '<figure class="ph-fig"><img src="' + esc(ph.src) + '" alt="' + esc(ph.alt || "") + '" loading="lazy" onerror="var f=this.closest(\'figure\');if(f)f.remove()"><figcaption>Photo : ' + esc(ph.credit) + " — " + (safeUrl(ph.licenseUrl) ? '<a href="' + esc(ph.licenseUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(ph.license) + "</a>" : esc(ph.license)) +
+        (safeUrl(ph.source) ? ' · <a href="' + esc(ph.source) + '" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>' : "") + (ph.modified === false ? "" : " · image redimensionnée et recadrée") + "</figcaption></figure>";
     }
     if (D.summary) o += '<p class="lead">' + esc(D.summary) + "</p>";
     var site = safeUrl(D.site), tk = safeUrl(D.tickets);
     if (site || tk) {
       o += '<div class="go">' +
-        (tk ? '<a class="btn gold" id="sh-tickets" href="' + esc(tk) + '" target="_blank" rel="noopener noreferrer">Billets</a>' : "") +
+        (tk ? '<a class="btn gold" id="sh-tickets" href="' + esc(tk) + '" target="_blank" rel="noopener noreferrer">' + esc(D.ticketsLabel || "Billets") + "</a>" : "") +
         (site ? '<a class="btn" id="sh-site" href="' + esc(site) + '" target="_blank" rel="noopener noreferrer">Site officiel</a>' : "") + "</div>";
     }
     if (D.address) o += fx("Adresse", "<p>" + esc(D.address) + "</p>");
-    if (D.metro) o += fx("Métro", "<p>" + esc(D.metro) + "</p>");
+    if (D.metro) o += fx("Métro", Array.isArray(D.metro) ? "<p>" + esc(D.metro[0]) + "</p>" + ul(D.metro.slice(1)) : "<p>" + esc(D.metro) + "</p>");
     if (D.hours) o += fx("Horaires officiels", ul(D.hours.lines) + (D.hours.note ? '<p class="fnote">' + esc(D.hours.note) + "</p>" : ""));
     if (D.price) {
       o += fx("Tarif indicatif", ul(D.price.lines) +
@@ -1719,7 +1720,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
         var nxt = steps[i + 1];
         var res = x.price === "Gratuit" ? "Gratuit" : x.price === "Payant" ? "Payant" : "";
         return '<li class="step"><span class="no">' + (i + 1) + '</span><h3><button type="button" data-open="' + x.id + '">' + esc(x.name) + '</button></h3>' +
-          "<p>" + ord(x.arr) + " · " + duration(x) + (res ? " · " + res : "") + (x.flag === "v" ? ' · <span class="flag v" style="margin:0">À vérifier</span>' : "") + "</p>" +
+          "<p>" + ord(x.arr) + " · " + duration(x) + (res ? " · " + res : "") + (x.flag === "v" && !hasDetails(x) ? ' · <span class="flag v" style="margin:0">À vérifier</span>' : "") + "</p>" +
           (nxt ? '<p><a href="' + "https://www.google.com/maps/dir/?api=1&origin=" + encodeURIComponent(x.name + " Paris") + "&destination=" + encodeURIComponent(nxt.name + " Paris") + '" target="_blank" rel="noopener">Itinéraire vers l\'étape suivante</a></p>' : "") + "</li>";
       }).join("") + "</ol>";
     });

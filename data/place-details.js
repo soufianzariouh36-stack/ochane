@@ -5,14 +5,15 @@
  *   verified   date ISO de la dernière vérification sur les sites officiels
  *   summary    description courte et utile
  *   address    adresse complète
- *   metro      station la plus pratique (+ correspondances utiles)
+ *   metro      station la plus pratique (+ correspondances utiles) ; texte, ou liste de textes
  *   hours      { lines: [...], note: "..." }
  *   price      { lines: [...], free: [...], note: "..." }
  *   site       URL du site officiel
  *   tickets    URL de la billetterie officielle (le bouton "Billets" n'apparaît que si elle existe)
+ *   ticketsLabel  libellé du bouton si "Billets" ne convient pas (facultatif)
  *   access     { level: "Partielle", note: "..." }
  *   tip        conseil pratique Ochane
- *   photo      { src, alt, credit, license, source } : affichée seulement si les droits sont établis
+ *   photo      { src, alt, credit, license, licenseUrl, source } : affichée seulement si le fichier existe et que crédit + licence sont renseignés
  * Champs internes, jamais affichés au visiteur :
  *   sources    pages officielles consultées
  *   todo       informations manquantes ou incertaines à vérifier avant de les afficher
@@ -44,15 +45,15 @@ window.OCHANE_DETAILS = {
       note: "Le 1er étage et le 2e étage (niveau inférieur) sont accessibles en fauteuil roulant. Le sommet et l'accès par escaliers ne le sont pas. Tarif réduit pour les personnes en situation de handicap."
     },
     tip: "Achète ton e-billet à l'avance : il est nominatif et une pièce d'identité est demandée pour chaque personne, enfants compris. Compte 10 à 20 minutes de contrôle de sécurité avant d'atteindre le parvis. Réserve tôt de juin à septembre, pendant les vacances scolaires et les jours fériés.",
-    photo: null,
+    photo: { src: "img/places/tour-eiffel.jpg", alt: "Tour Eiffel, Paris", credit: "Gerd Eichmann", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Paris-Tour_Eiffel-106-2017-gje.jpg" },
     sources: ["https://www.toureiffel.paris/fr/tarifs-horaires", "https://www.toureiffel.paris/fr/plan-acces", "https://www.toureiffel.paris/fr/bien-preparer-votre-visite", "https://ticket.toureiffel.paris/fr"],
-    todo: ["Photo libre de droits à fournir ou à valider."]
+    todo: ["Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."]
   },
 
   "1|Musée du Louvre": {
     verified: "2026-10-16",
     summary: "Entrée principale sous la Pyramide. Ouvert tous les jours sauf le mardi, avec nocturne le mercredi et le vendredi. Le jardin des Tuileries voisin est gratuit.",
-    address: "Musée du Louvre, 75001 Paris",
+    address: "Rue de Rivoli, 75001 Paris (accès par le Carrousel du Louvre : 99 rue de Rivoli)",
     metro: "Palais-Royal – Musée du Louvre (lignes 1 et 7). Alternative : Pyramides (ligne 14).",
     hours: {
       lines: [
@@ -81,19 +82,51 @@ window.OCHANE_DETAILS = {
       note: "Ascenseur central sous la Pyramide ou escalator. Prêt gratuit de fauteuils roulants, cannes et sièges pliants à l'espace Assistance (contre une pièce d'identité). Accès prioritaire pour le visiteur en situation de handicap et son accompagnateur."
     },
     tip: "Pour profiter de la nocturne, viens le mercredi ou le vendredi : le musée ferme à 21 h. Réserve un créneau en ligne et présente-toi à la Pyramide à l'heure choisie.",
-    photo: null,
+    photo: { src: "img/places/musee-du-louvre.jpg", alt: "Musée du Louvre vu depuis le jardin des Tuileries", credit: "DiscoA340", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Louvre_Museum_from_the_Tuileries_Garden.jpg" },
     sources: ["https://www.louvre.fr/en/visit/hours-admission", "https://www.louvre.fr/en/visit", "https://www.louvre.fr/en/visit/accessibility", "https://contact.louvre.fr/hc/fr/articles/12846022972829-Comment-venir-au-mus%C3%A9e"],
-    todo: ["Adresse postale complète (rue) non trouvée sur les pages officielles lues : seul « 75001 Paris » est affiché.", "Photo libre de droits à fournir ou à valider."]
+    todo: ["Le site officiel ne donne pas d'adresse postale unique : Passage Richelieu « rue de Rivoli, 75001 », Carrousel « 99 rue de Rivoli, 75001 », Porte des Lions « quai François Mitterrand, 75001 ».", "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."]
   },
 
   "4|Cathédrale Notre-Dame": {
     verified: "2026-10-16",
+    summary: "Entrée libre et gratuite. Un créneau gratuit peut être réservé en ligne pour réduire l'attente. La montée aux tours est payante, sur réservation obligatoire.",
+    address: "6 Parvis Notre-Dame – Place Jean-Paul II, 75004 Paris",
+    metro: [
+      "Le site officiel ne désigne aucune station comme la plus pratique. Stations citées :",
+      "Ligne 4 : Cité ou Saint-Michel",
+      "Lignes 1 et 11 : Hôtel de Ville",
+      "Ligne 10 : Maubert – Mutualité ou Cluny – La Sorbonne",
+      "Lignes 7, 11 et 14 : Châtelet",
+      "RER B et C : Saint-Michel – Notre-Dame"
+    ],
+    hours: {
+      lines: [
+        "Cathédrale, lundi, mardi, mercredi et vendredi : 7 h 50 – 19 h",
+        "Cathédrale, jeudi : 7 h 50 – 22 h",
+        "Cathédrale, samedi et dimanche : 8 h 15 – 19 h 30",
+        "Cathédrale, dernière entrée 30 minutes avant la fermeture",
+        "Tours, du 1er avril au 30 septembre : 9 h – 23 h ; du 1er octobre au 31 mars : 9 h – 17 h 30, dernière entrée 1 h avant la fermeture"
+      ],
+      note: "Les horaires peuvent varier lors d'événements ou de célébrations."
+    },
+    price: {
+      lines: ["Tours : 16 € (tarif individuel)"],
+      free: ["Cathédrale : entrée libre et gratuite", "Tours : billets gratuits pour certains publics, dans la limite d'un quota par créneau"],
+      note: "Le billet des tours s'achète uniquement en ligne, aucune vente sur place. Le créneau est obligatoire, y compris pour les gratuités."
+    },
     site: "https://www.notredamedeparis.fr/",
-    photo: null,
-    sources: ["https://www.notredamedeparis.fr/"],
+    tickets: "https://resa.notredamedeparis.fr/fr/tickets",
+    ticketsLabel: "Créneau gratuit",
+    access: {
+      level: "Aménagée",
+      note: "Entrée principale accessible par le portail central. Accès prioritaire pour la personne en situation de handicap et un accompagnateur, sur justificatif, sans réservation. Rampes d'accès et plateforme élévatrice. Livrets en braille, audioguides et maquettes tactiles ; comptoirs équipés de boucles magnétiques. Plusieurs chapelles sont accessibles par des rampes permanentes ou amovibles. Il n'y a pas de toilettes publiques dans la cathédrale."
+    },
+    tip: "Réserve gratuitement un créneau pour réduire l'attente à l'entrée. Pour les tours, prévois 424 marches en montée et achète ton billet en ligne avant de venir : aucune vente sur place.",
+    photo: { src: "img/places/cathedrale-notre-dame.jpg", alt: "Façade sud de la cathédrale Notre-Dame de Paris", credit: "Yair Haklai", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:South_facade_of_Notre-Dame_de_Paris.jpg" },
+    sources: ["https://www.notredamedeparis.fr/visiter/informations-pratiques/acces-et-transports/", "https://www.notredamedeparis.fr/faq/lacces-a-notre-dame-sera-t-il-payant/", "https://www.notredamedeparis.fr/visiter/accessibilite/", "https://resa.notredamedeparis.fr/fr/tickets", "https://www.tours-notre-dame-de-paris.fr/visiter/informations-pratiques"],
     todo: [
-      "Le site officiel n'a pas pu être lu automatiquement (pages visiter / horaires / réservation inaccessibles) : horaires, gratuité, réservation, adresse, métro, accessibilité, conseil à vérifier à la main sur notredamedeparis.fr.",
-      "Photo libre de droits à fournir ou à valider."
+      "Adresse, horaires, transports et accessibilité fournis et validés par Soufian le 2026-10-16 d'après les pages officielles citées en sources. Aucune date de publication affichée sur ces pages.",
+      "Horaires des tours : à confirmer à chaque changement de saison."
     ]
   },
 
@@ -118,13 +151,13 @@ window.OCHANE_DETAILS = {
       note: "Un accès avec ascenseur pour les personnes handicapées ou à mobilité réduite se trouve à l'arrière de la basilique, 35 rue du Chevalier de La Barre. Le dôme n'a pas d'ascenseur et n'est pas conseillé aux personnes à mobilité réduite."
     },
     tip: "Le dôme se règle à la caisse sur place, après le contrôle de sécurité : pas de réservation en ligne, et pas de toilettes en haut. Vérifie le site officiel la veille, car la montée peut fermer pour entretien ou météo.",
-    photo: null,
+    photo: { src: "img/places/basilique-du-sacre-coeur.jpg", alt: "Basilique du Sacré-Cœur de Montmartre", credit: "HJ Mitchell", license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/", source: "https://commons.wikimedia.org/wiki/File:Sacre-Coeur,_Paris_01.jpg" },
     sources: ["https://www.sacre-coeur-montmartre.com/infos-et-visites/informations-pratiques/horaires-et-acces/", "https://www.sacre-coeur-montmartre.com/en/info-and-visits/the-dome-tour/"],
     todo: [
       "Station de métro la plus pratique : non indiquée sur les pages officielles lues, donc non affichée.",
       "Heure de fin de l'accès ascenseur : 19 h sur la page française, 18 h 30 sur la page anglaise (contradiction) : seule l'heure d'ouverture, 8 h 30, est certaine et n'est pas affichée non plus.",
       "Horaires du dôme : la page parle de 10 h 15 – 17 h 30 « selon la saison » sans détail saisonnier.",
-      "Photo libre de droits à fournir ou à valider."
+      "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."
     ]
   },
 
@@ -158,11 +191,11 @@ window.OCHANE_DETAILS = {
       note: "L'ascenseur est en maintenance « jusqu'à nouvel ordre » : la terrasse n'est atteignable que par l'escalier (284 marches). Entrée gratuite pour le visiteur en situation de handicap et un accompagnateur."
     },
     tip: "Avant de venir, vérifie sur le site officiel si l'ascenseur est de nouveau en service : en attendant, prévois 284 marches. Dernier accès 45 minutes avant la fermeture.",
-    photo: null,
+    photo: { src: "img/places/arc-de-triomphe.jpg", alt: "Arc de Triomphe, Paris", credit: "Dharshini Vinayagam", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Arc_de_Triomphe_paris_france.jpg" },
     sources: ["https://www.paris-arc-de-triomphe.fr/en/visit/practical-information"],
     todo: [
       "La page officielle indique à la fois « ascenseur en maintenance jusqu'à nouvel ordre » et « ascenseur disponible sans réservation » : contradiction, seule la maintenance est affichée.",
-      "Photo libre de droits à fournir ou à valider."
+      "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."
     ]
   },
 
@@ -198,8 +231,8 @@ window.OCHANE_DETAILS = {
       note: "Le site officiel indique une accessibilité « partiellement conforme ». Ascenseurs, prêt de matériel et places de stationnement réservées. Visiteur en situation de handicap et accompagnateur : entrée 2 (parvis). Des travaux importants sont en cours : vérifier les conditions d'accès avant de venir."
     },
     tip: "Le jeudi soir est la nocturne : billet à 12 € en ligne à partir de 18 h, et le musée reste ouvert jusqu'à 21 h 45. Le 1er dimanche du mois, la réservation en ligne est obligatoire.",
-    photo: null,
+    photo: { src: "img/places/musee-d-orsay.jpg", alt: "Façade du musée d'Orsay", credit: "DiscoA340", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Front_view_of_the_Mus%C3%A9e_d%27Orsay.jpg" },
     sources: ["https://www.musee-orsay.fr/en/visit/admission-opening-times-tickets", "https://www.musee-orsay.fr/en/articles/getting-museum-296243", "https://www.musee-orsay.fr/en/visit"],
-    todo: ["Liste complète des gratuités : la page n'en détaille qu'une partie, seules celles citées sont affichées.", "Photo libre de droits à fournir ou à valider."]
+    todo: ["Liste complète des gratuités : la page n'en détaille qu'une partie, seules celles citées sont affichées.", "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."]
   }
 };
