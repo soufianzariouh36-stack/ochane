@@ -6,7 +6,7 @@
 <title>Ochane · Paris</title>
 <meta name="description" content="Ochane : le guide visuel des villes, quartier par quartier. Restaurants, monuments, hôtels, sorties, boutiques, agenda et parcours.">
 <meta name="theme-color" content="#0D2B52">
-<meta name="ochane-build" content="2026-10-16-recherche-v2">
+<meta name="ochane-build" content="2026-10-16-fiches-monuments-v1">
 <meta property="og:title" content="Ochane">
 <meta property="og:description" content="Le guide visuel des villes, quartier par quartier.">
 <meta property="og:type" content="website">
@@ -164,6 +164,25 @@ dialog::backdrop { background: rgba(3, 8, 14, .7); }
 .sh .acts .wide { grid-column: 1 / -1; }
 .sh .src { margin: 14px 0 0; font-size: .8rem; color: var(--muted); }
 .sh .pending { margin: 10px 0 0; font-size: .82rem; color: var(--warn); }
+.sh .ph-fig { margin: 12px 0 0; }
+.sh .ph-fig img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 12px; background: var(--surface2); }
+.sh .ph-fig figcaption { margin-top: 6px; font-size: .74rem; color: var(--muted); }
+.sh .ph-fig figcaption a { color: inherit; }
+.sh .lead { margin: 12px 0 0; font-size: 1.02rem; }
+.sh .lvl { display: inline-block; margin-right: 6px; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: var(--surface2); border: 1px solid var(--line); }
+.sh .fx { margin: 16px 0 0; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.sh .fx h3 { margin: 0 0 6px; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.sh .fx p { margin: 0; font-size: .94rem; }
+.sh .fx ul { margin: 0; padding: 0 0 0 18px; font-size: .94rem; }
+.sh .fx li + li { margin-top: 4px; }
+.sh .fx .sub { margin-top: 8px; font-weight: 700; font-size: .84rem; color: var(--free); }
+.sh .fx .fnote { margin-top: 8px; font-size: .84rem; color: var(--muted); }
+.sh .fx.tip { border-color: var(--gold-text); }
+.sh .fx.tip h3 { color: var(--gold-text); }
+.sh .go { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.sh .go .btn { text-decoration: none; color: inherit; }
+.sh .go .btn.gold { color: var(--gold-ink); }
+.sh .go .btn:only-child { grid-column: 1 / -1; }
 .btn[aria-pressed="true"] { border-color: var(--gold); color: var(--gold-text); }
 .btn[aria-pressed="true"] svg { fill: currentColor; }
 
@@ -615,6 +634,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
 </nav></div>
 
 <script src="vendor/leaflet.js"></script>
+<script src="data/place-details.js"></script>
 <script>
 (function () {
   var CATS = { r: "Restaurants", s: "Soirées", m: "Monuments & musées", h: "Hôtels", a: "Activités", b: "Boutiques" };
@@ -1490,6 +1510,39 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   function row(label, val) {
     return "<dt>" + label + "</dt>" + (val ? "<dd>" + val + "</dd>" : '<dd class="nr">Non renseigné</dd>');
   }
+  /* Fiches détaillées : données dans data/place-details.js (voir la structure en tête de ce fichier) */
+  var DETAILS = window.OCHANE_DETAILS || {};
+  function fmtDate(iso) {
+    var d = new Date(iso + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  }
+  function safeUrl(u) { return /^https:\/\//i.test(u || "") ? u : ""; }
+  function fx(title, inner, cls) { return inner ? '<section class="fx' + (cls ? " " + cls : "") + '"><h3>' + title + "</h3>" + inner + "</section>" : ""; }
+  function ul(a) { return a && a.length ? "<ul>" + a.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" : ""; }
+  function richBody(D) {
+    var o = "", ph = D.photo && D.photo.src && D.photo.credit && D.photo.license ? D.photo : null;
+    if (ph) {
+      o += '<figure class="ph-fig"><img src="' + esc(ph.src) + '" alt="' + esc(ph.alt || "") + '" loading="lazy"><figcaption>Photo : ' + esc(ph.credit) + " · " + esc(ph.license) +
+        (safeUrl(ph.source) ? ' · <a href="' + esc(ph.source) + '" target="_blank" rel="noopener noreferrer">Source</a>' : "") + "</figcaption></figure>";
+    }
+    if (D.summary) o += '<p class="lead">' + esc(D.summary) + "</p>";
+    var site = safeUrl(D.site), tk = safeUrl(D.tickets);
+    if (site || tk) {
+      o += '<div class="go">' +
+        (tk ? '<a class="btn gold" id="sh-tickets" href="' + esc(tk) + '" target="_blank" rel="noopener noreferrer">Billets</a>' : "") +
+        (site ? '<a class="btn" id="sh-site" href="' + esc(site) + '" target="_blank" rel="noopener noreferrer">Site officiel</a>' : "") + "</div>";
+    }
+    if (D.address) o += fx("Adresse", "<p>" + esc(D.address) + "</p>");
+    if (D.metro) o += fx("Métro", "<p>" + esc(D.metro) + "</p>");
+    if (D.hours) o += fx("Horaires officiels", ul(D.hours.lines) + (D.hours.note ? '<p class="fnote">' + esc(D.hours.note) + "</p>" : ""));
+    if (D.price) {
+      o += fx("Tarif indicatif", ul(D.price.lines) +
+        (D.price.free && D.price.free.length ? '<p class="sub">Gratuité</p>' + ul(D.price.free) : "") +
+        (D.price.note ? '<p class="fnote">' + esc(D.price.note) + "</p>" : ""));
+    }
+    if (D.access) o += fx("Accessibilité", '<p>' + (D.access.level ? '<span class="lvl">' + esc(D.access.level) + "</span>" : "") + esc(D.access.note || "") + "</p>");
+    if (D.tip) o += fx("Conseil OCHANE", "<p>" + esc(D.tip) + "</p>", "tip");
+    return o;
+  }
   function openSheet(id) {
     var x = ALL[id]; if (!x) return;
     lastOpener = document.activeElement;
@@ -1498,6 +1551,10 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     var isFav = !!favs[favId(x)];
     var h = '<div class="sh cat-' + x.cat + '"><div class="top"><div><div class="kind">' + esc(SHORT[x.cat]) + " · " + ord(x.arr) + " arrondissement</div><h2 id=\"sh-name\">" + esc(x.name) + "</h2></div>" +
       '<button type="button" class="ibtn" id="sh-close" aria-label="Fermer la fiche"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
+    var D = DETAILS[favId(x)];
+    if (D) {
+      h += richBody(D);
+    } else {
     if (x.flag === "f") h += '<p class="pending" style="color:var(--bad)">Fermé ou en travaux</p>';
     else if (x.flag === "v") h += '<p class="pending">À vérifier</p>';
     if (PHOTOS[x.name]) h += '<img src="' + esc(PHOTOS[x.name]) + '" alt="" style="width:100%;border-radius:12px;margin-top:12px">';
@@ -1513,10 +1570,11 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     if (x.access) h = h.replace("</dl>", row("Accessibilité", esc(x.access)) + "</dl>"); else nr.push("accessibilité");
     if (!x.addr) nr.push("adresse"); if (!x.hours) nr.push("horaires");
     h += '<p class="note">Non renseigné : ' + nr.join(", ") + ".</p>";
+    }
     h += '<div class="acts"><a class="btn gold" href="' + mapsDir(x) + '" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"/></svg>Itinéraire</a>' +
       '<button type="button" class="btn" id="sh-fav" aria-pressed="' + isFav + '">' + HEART + "<span>" + (isFav ? "Dans mes favoris" : "Ajouter aux favoris") + "</span></button>" +
       '<button type="button" class="btn wide" id="sh-report">Signaler une erreur</button></div><p class="note" id="sh-report-msg" role="status" hidden></p>' +
-      '<p class="src">Vérifié en octobre 2026' + (x.flag ? " (avec réserve)" : "") + ".</p></div>";
+      '<p class="src">' + (D && D.verified ? "Informations vérifiées le " + fmtDate(D.verified) + " sur les sites officiels." : "Vérifié en octobre 2026" + (x.flag ? " (avec réserve)" : "") + ".") + "</p></div>";
     $("sheet-in").innerHTML = h;
     var dlg = $("sheet");
     if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute("open", "");
