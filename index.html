@@ -637,6 +637,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
 
 <script src="vendor/leaflet.js"></script>
 <script src="data/place-details.js"></script>
+<script src="data/ochane-config.js"></script>
 <script>
 (function () {
   var CATS = { r: "Restaurants", s: "Soirées", m: "Monuments & musées", h: "Hôtels", a: "Activités", b: "Boutiques" };
@@ -2141,6 +2142,18 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   }
   try { var tm = localStorage.getItem(THEMEKEY); if (tm === "light" || tm === "dark") setTheme(tm); } catch (e) {}
   $("btheme").addEventListener("click", function () { setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+
+  /* Fiches modifiées depuis l'admin (Supabase) : elles complètent/remplacent data/place-details.js. Sans configuration, rien ne change. */
+  (function () {
+    var C = window.OCHANE_CONFIG; if (!C || !C.supabaseUrl || !C.supabaseKey || !window.fetch) return;
+    fetch(C.supabaseUrl + "/rest/v1/place_details?select=key,data", { headers: { apikey: C.supabaseKey, Authorization: "Bearer " + C.supabaseKey } })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        if (!rows || !rows.length) return;
+        rows.forEach(function (r) { if (r.data && r.data._deleted) delete DETAILS[r.key]; else if (r.data) DETAILS[r.key] = r.data; });
+        refresh();
+      }).catch(function () {});
+  })();
 
   updateFavBadge();
   show("home", { keepScroll: true });

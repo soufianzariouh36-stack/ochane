@@ -49,15 +49,35 @@ legend { font-weight:800; padding:0 6px; }
 </style>
 </head>
 <body>
+<script src="../data/ochane-config.js"></script>
 <header>
   <h1>OCHANE · ADMIN</h1>
   <span id="status">Aucun dossier ouvert</span>
   <span class="sp"></span>
-  <button id="bOpen" class="pri">Ouvrir le dossier ochane</button>
+  <button id="bOut">Se déconnecter</button>
 </header>
 
 <div id="welcome" class="panel" style="margin:16px;max-width:760px;margin-inline:auto">
-  <h2 style="margin-top:0">Outil d'administration des fiches</h2>
+  <h2 style="margin-top:0">Administration des fiches</h2>
+  <fieldset style="text-align:left"><legend>Connexion</legend>
+    <div id="sbBox"><label for="s_email">Email</label><input type="text" id="s_email" autocomplete="username" inputmode="email">
+    <label for="s_pw">Mot de passe</label><input type="password" id="s_pw" autocomplete="current-password">
+    <button id="bSb" class="pri" style="margin-top:12px">Se connecter</button></div>
+    <p id="sbOff" class="hint hidden">Supabase n'est pas encore configuré (data/ochane-config.js).</p>
+  </fieldset>
+  <details style="text-align:left;margin-top:14px"><summary class="hint">Autres modes (GitHub, dossier local)</summary>
+  <fieldset style="text-align:left"><legend>En ligne via GitHub</legend>
+    <p class="hint" style="margin:8px 0">Les modifications sont enregistrées directement dans le dépôt GitHub du site ; Vercel met ochane.com à jour en environ 1 minute.</p>
+    <div class="g2"><div><label for="g_repo">Dépôt</label><input type="text" id="g_repo" value="soufianzariouh36-stack/ochane"></div><div><label for="g_branch">Branche</label><input type="text" id="g_branch" value="main"></div></div>
+    <label for="g_token">Jeton d'accès GitHub <small>(<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">le créer</a> : dépôt ochane uniquement, permission « Contents : Read and write »)</small></label>
+    <input type="password" id="g_token" autocomplete="off" placeholder="github_pat_…">
+    <label style="font-weight:400"><input type="checkbox" id="g_remember"> Mémoriser sur cet appareil (à éviter sur un ordinateur partagé)</label>
+    <button id="bGh" class="pri" style="margin-top:12px">Se connecter</button>
+  </fieldset>
+  <fieldset style="text-align:left"><legend>Sur cet ordinateur</legend>
+  <button id="bOpen2">Ouvrir le dossier ochane (Chrome, Edge, Brave)</button></fieldset>
+  </details>
+  <h3>Mode dossier local</h3>
   <p>Clique sur <b>Ouvrir le dossier ochane</b> et choisis le dossier du site sur ton ordinateur (celui qui contient <code>index.html</code>). Tu modifies les fiches ici ; l'outil écrit directement <code>data/place-details.js</code> et les photos dans <code>img/places/</code>. Il ne reste ensuite qu'à faire le <code>git push</code>.</p>
   <p class="hint">Fonctionne avec Chrome, Edge ou Brave sur ordinateur. Aucune donnée n'est envoyée sur Internet : tout reste sur ta machine. Une copie de sécurité de l'ancien fichier est enregistrée dans <code>_travail/</code> à chaque enregistrement.</p>
 </div>
@@ -93,10 +113,58 @@ legend { font-weight:800; padding:0 6px; }
     for (var i = 0; i < parts.length; i++) h = await h.getDirectoryHandle(parts[i], { create: !!create });
     return h;
   }
-  async function readText(path) {
+  var mode = "fs", SB = { access: "", refresh: "" }, CFG = window.OCHANE_CONFIG || {}, GH = { owner: "", repo: "", branch: "main", token: "" };
+  async function ghApi(url, opt) {
+    opt = opt || {}; opt.cache = "no-store";
+    opt.headers = Object.assign({ Authorization: "Bearer " + GH.token, Accept: "application/vnd.github+json" }, opt.headers || {});
+    var r = await fetch("https://api.github.com/repos/" + GH.owner + "/" + GH.repo + url, opt);
+    if (!r.ok) { var t = ""; try { t = (await r.json()).message; } catch (e) { } var er = new Error("GitHub " + r.status + (t ? " : " + t : "")); er.status = r.status; throw er; }
+    return r;
+  }
+  async function sbFetch(path, opt, retry) {
+    opt = opt || {}; opt.cache = "no-store";
+    opt.headers = Object.assign({ apikey: CFG.supabaseKey, Authorization: "Bearer " + (SB.access || CFG.supabaseKey) }, opt.headers || {});
+    var r = await fetch(CFG.supabaseUrl + path, opt);
+    if (r.status === 401 && !retry && SB.refresh) { await sbToken({ grant_type: "refresh_token", refresh_token: SB.refresh }); return sbFetch(path, opt, true); }
+    if (!r.ok) { var t = ""; try { var j = await r.json(); t = j.message || j.msg || j.error_description || j.error || ""; } catch (e) { } throw new Error((t || "Erreur") + " (" + r.status + ")"); }
+    return r;
+  }
+  async function sbToken(body) {
+    var grant = body.grant_type, r = await fetch(CFG.supabaseUrl + "/auth/v1/token?grant_type=" + grant, { method: "POST", headers: { apikey: CFG.supabaseKey, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    var j = await r.json();
+    if (!r.ok) throw new Error(r.status === 400 ? "Email ou mot de passe incorrect." : (j.msg || j.error_description || "Connexion impossible"));
+    SB.access = j.access_token; SB.refresh = j.refresh_token;
+    try { localStorage.setItem("ochane-admin-sb", JSON.stringify({ refresh: SB.refresh })); } catch (e) { }
+    return j;
+  }
+  async function readBlob(path) {
+    if (/^https?:\/\//.test(path)) { var rr = await fetch(path); if (!rr.ok) throw new Error("introuvable"); return rr.blob(); }
+    if (mode === "sb") { var r0 = await fetch("../" + path, { cache: "no-store" }); if (!r0.ok) throw new Error("introuvable"); return r0.blob(); }
+    if (mode === "gh") {
+      var r = await ghApi("/contents/" + path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(GH.branch), { headers: { Accept: "application/vnd.github.raw+json" } });
+      return r.blob();
+    }
     var parts = path.split("/"), name = parts.pop(), d = await getDir(parts.join("/"), false);
-    var fh = await d.getFileHandle(name);
-    return (await fh.getFile()).text();
+    return (await d.getFileHandle(name)).getFile();
+  }
+  async function readText(path) { return (await readBlob(path)).text(); }
+  function toB64(blob) { return new Promise(function (ok, ko) { var f = new FileReader(); f.onload = function () { ok(String(f.result).split(",")[1]); }; f.onerror = ko; f.readAsDataURL(blob); }); }
+  /* écrit plusieurs fichiers d'un coup : un seul commit en ligne, ou fichiers locaux */
+  async function commit(files, message) {
+    var paths = Object.keys(files);
+    if (mode !== "gh") { for (var i = 0; i < paths.length; i++) await writeFile(paths[i], files[paths[i]]); return; }
+    var ref = await (await ghApi("/git/ref/heads/" + encodeURIComponent(GH.branch))).json();
+    var base = ref.object.sha;
+    var cm = await (await ghApi("/git/commits/" + base)).json();
+    var tree = [];
+    for (var j = 0; j < paths.length; j++) {
+      var f = files[paths[j]], blob = f instanceof Blob ? f : new Blob([f]);
+      var b = await (await ghApi("/git/blobs", { method: "POST", body: JSON.stringify({ content: await toB64(blob), encoding: "base64" }) })).json();
+      tree.push({ path: paths[j], mode: "100644", type: "blob", sha: b.sha });
+    }
+    var nt = await (await ghApi("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: cm.tree.sha, tree: tree }) })).json();
+    var nc = await (await ghApi("/git/commits", { method: "POST", body: JSON.stringify({ message: message, tree: nt.sha, parents: [base] }) })).json();
+    await ghApi("/git/refs/heads/" + encodeURIComponent(GH.branch), { method: "PATCH", body: JSON.stringify({ sha: nc.sha }) });
   }
   async function writeFile(path, data) {
     var parts = path.split("/"), name = parts.pop(), d = await getDir(parts.join("/"), true);
@@ -125,6 +193,10 @@ legend { font-weight:800; padding:0 6px; }
     HEADER = k > 0 ? txt.slice(0, k) : "/* Ochane - fiches détaillées des lieux. */\n";
     var w = {}; if (k >= 0) { (new Function("window", txt))(w); }
     DET = w.OCHANE_DETAILS || {};
+    if (mode === "sb") {
+      var rows = await (await sbFetch("/rest/v1/place_details?select=key,data")).json();
+      rows.forEach(function (r) { if (r.data && r.data._deleted) delete DET[r.key]; else if (r.data) DET[r.key] = r.data; });
+    }
   }
   function key(p) { return p.arr + "|" + p.name; }
 
@@ -203,7 +275,7 @@ legend { font-weight:800; padding:0 6px; }
     var box = $("photoBox"); box.textContent = "";
     var url = null;
     if (photoBlob) url = URL.createObjectURL(photoBlob);
-    else if (src && dir) { try { var parts = src.split("/"), nm = parts.pop(), d = await getDir(parts.join("/"), false); url = URL.createObjectURL(await (await d.getFileHandle(nm)).getFile()); } catch (e) { url = null; } }
+    else if (src) { try { url = URL.createObjectURL(await readBlob(src)); } catch (e) { url = null; } }
     if (!url) { box.innerHTML = '<span class="hint">Aucune photo.</span>'; return; }
     var im = document.createElement("img"); im.id = "photoPrev"; im.src = url; box.appendChild(im);
   }
@@ -267,15 +339,25 @@ legend { font-weight:800; padding:0 6px; }
 
     var next = Object.assign({}, DET); next[key(cur)] = e;
     try {
-      if (dir) {
-        var prev = null; try { prev = await readText("data/place-details.js"); } catch (x) { }
-        if (prev) await writeFile("_travail/place-details.sauvegarde-" + new Date().toISOString().replace(/[:.]/g, "-") + ".js", prev);
-        if (photoBlob) await writeFile(e.photo.src, photoBlob);
-        await writeFile("data/place-details.js", serialize(next));
+      if (mode === "sb") {
+        setStatus("Enregistrement…");
+        if (photoBlob) {
+          var nm = slug(cur.name) + "-" + Date.now().toString(36) + ".jpg";
+          await sbFetch("/storage/v1/object/place-photos/" + nm, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: photoBlob });
+          e.photo.src = CFG.supabaseUrl + "/storage/v1/object/public/place-photos/" + nm;
+        }
+        await sbFetch("/rest/v1/place_details", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify([{ key: key(cur), data: e, updated_at: new Date().toISOString() }]) });
+        next[key(cur)] = e; DET = next; photoBlob = null; dirty = false; renderList(); renderForm();
+        msg("Enregistré : visible tout de suite sur ochane.com.", "ok"); setStatus("Dernier enregistrement : " + new Date().toLocaleTimeString("fr-FR")); return;
       }
+      var files = {};
+      if (mode !== "gh") { var prev = null; try { prev = await readText("data/place-details.js"); } catch (x) { } if (prev) files["_travail/place-details.sauvegarde-" + new Date().toISOString().replace(/[:.]/g, "-") + ".js"] = prev; }
+      if (photoBlob) files[e.photo.src] = photoBlob;
+      files["data/place-details.js"] = serialize(next);
+      setStatus("Enregistrement…"); await commit(files, "Admin : fiche « " + cur.name + " »");
       DET = next; photoBlob = null; dirty = false;
       renderList(); renderForm();
-      msg("Enregistré dans data/place-details.js" + (dir ? "" : " (non écrit : télécharge le fichier)") + ". Reste à faire le git push.", "ok");
+      msg(mode === "gh" ? "Enregistré et envoyé sur GitHub. Le site se met à jour sur ochane.com dans environ 1 minute." : "Enregistré dans data/place-details.js. Reste à faire le git push.", "ok");
       setStatus("Dernier enregistrement : " + new Date().toLocaleTimeString("fr-FR"));
     } catch (x) { msg("Échec de l'enregistrement : " + x.message, "err"); }
   }
@@ -283,23 +365,54 @@ legend { font-weight:800; padding:0 6px; }
     if (!window.confirm("Supprimer la fiche de « " + cur.name + " » ? (la photo reste dans le dossier)")) return;
     var next = Object.assign({}, DET); delete next[key(cur)];
     try {
-      var prev = await readText("data/place-details.js");
-      await writeFile("_travail/place-details.sauvegarde-" + new Date().toISOString().replace(/[:.]/g, "-") + ".js", prev);
-      await writeFile("data/place-details.js", serialize(next));
+      if (mode === "sb") {
+        await sbFetch("/rest/v1/place_details", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify([{ key: key(cur), data: { _deleted: true }, updated_at: new Date().toISOString() }]) });
+        DET = next; dirty = false; renderList(); renderForm(); msg("Fiche supprimée du site.", "ok"); return;
+      }
+      var df = {};
+      if (mode !== "gh") df["_travail/place-details.sauvegarde-" + new Date().toISOString().replace(/[:.]/g, "-") + ".js"] = await readText("data/place-details.js");
+      df["data/place-details.js"] = serialize(next);
+      await commit(df, "Admin : suppression de la fiche « " + cur.name + " »");
       DET = next; dirty = false; renderList(); renderForm(); msg("Fiche supprimée.", "ok");
     } catch (x) { msg("Échec : " + x.message, "err"); }
   }
   function serialize(o) { return HEADER + "window.OCHANE_DETAILS = " + JSON.stringify(o, null, 2) + ";\n"; }
 
   /* ---------- démarrage ---------- */
-  $("bOpen").onclick = async function () {
+  if (!CFG.supabaseUrl || !CFG.supabaseKey) { $("sbBox").classList.add("hidden"); $("sbOff").classList.remove("hidden"); }
+  async function sbStart() {
+    mode = "sb"; setStatus("Connexion…");
+    await loadAll(); enter("Admin Ochane");
+  }
+  $("bSb").onclick = async function () {
+    var em = $("s_email").value.trim(), pw = $("s_pw").value;
+    if (!em || !pw) { setStatus("Renseigne l'email et le mot de passe."); return; }
+    try { await sbToken({ grant_type: "password", email: em, password: pw }); await sbStart(); } catch (e) { mode = "fs"; setStatus(e.message); }
+  };
+  $("s_pw").addEventListener("keydown", function (ev) { if (ev.key === "Enter") $("bSb").click(); });
+  try { var ss = JSON.parse(localStorage.getItem("ochane-admin-sb") || "null"); if (ss && ss.refresh && CFG.supabaseUrl) { SB.refresh = ss.refresh; sbToken({ grant_type: "refresh_token", refresh_token: ss.refresh }).then(sbStart).catch(function () { mode = "fs"; setStatus("Session expirée : reconnecte-toi."); }); } } catch (e) { }
+  function enter(label) { $("welcome").classList.add("hidden"); $("app").classList.remove("hidden"); setStatus(label + " · " + PLACES.length + " lieux · " + Object.keys(DET).length + " fiches"); renderList(); }
+  $("bOut").onclick = function () { try { localStorage.removeItem("ochane-admin-gh"); localStorage.removeItem("ochane-admin-sb"); } catch (e) { } location.reload(); };
+  try { var sv = JSON.parse(localStorage.getItem("ochane-admin-gh") || "null"); if (sv) { $("g_repo").value = sv.repo; $("g_branch").value = sv.branch; $("g_token").value = sv.token; $("g_remember").checked = true; } } catch (e) { }
+  $("bGh").onclick = async function () {
+    var rp = $("g_repo").value.trim().split("/"), tk = $("g_token").value.trim();
+    if (rp.length !== 2 || !rp[0] || !rp[1] || !tk) { setStatus("Renseigne le dépôt (propriétaire/nom) et le jeton."); return; }
+    GH = { owner: rp[0], repo: rp[1], branch: $("g_branch").value.trim() || "main", token: tk }; mode = "gh";
+    try {
+      setStatus("Connexion…");
+      var info = await (await ghApi("")).json();
+      if (!info.permissions || !info.permissions.push) throw new Error("ce jeton n'a pas le droit d'écrire dans ce dépôt (Contents : Read and write)");
+      await loadAll();
+      try { if ($("g_remember").checked) localStorage.setItem("ochane-admin-gh", JSON.stringify({ repo: $("g_repo").value.trim(), branch: GH.branch, token: tk })); else localStorage.removeItem("ochane-admin-gh"); } catch (e) { }
+      enter("GitHub " + GH.owner + "/" + GH.repo + "@" + GH.branch);
+    } catch (e) { mode = "fs"; setStatus("Connexion impossible : " + e.message); }
+  };
+  $("bOpen2").onclick = async function () {
     if (!window.showDirectoryPicker) { setStatus("Navigateur non compatible : utilise Chrome, Edge ou Brave sur ordinateur."); return; }
     try {
       dir = await window.showDirectoryPicker({ mode: "readwrite" });
       await loadAll();
-      $("welcome").classList.add("hidden"); $("app").classList.remove("hidden");
-      setStatus(dir.name + " · " + PLACES.length + " lieux · " + Object.keys(DET).length + " fiches");
-      renderList();
+      mode = "fs"; enter(dir.name);
     } catch (e) { if (e.name !== "AbortError") setStatus("Erreur : " + e.message); }
   };
   $("q").addEventListener("input", renderList); $("fil").addEventListener("change", renderList);
