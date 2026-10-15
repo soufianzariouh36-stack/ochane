@@ -6,7 +6,7 @@
 <title>Ochane · Paris</title>
 <meta name="description" content="Ochane : le guide visuel des villes, quartier par quartier. Restaurants, monuments, hôtels, sorties, boutiques, agenda et parcours.">
 <meta name="theme-color" content="#0D2B52">
-<meta name="ochane-build" content="2026-10-16-fiches-monuments-v3">
+<meta name="ochane-build" content="2026-10-16-fiches-monuments-v4">
 <meta property="og:title" content="Ochane">
 <meta property="og:description" content="Le guide visuel des villes, quartier par quartier.">
 <meta property="og:type" content="website">
@@ -76,7 +76,7 @@ select.chip option { background: var(--surface); color: var(--ink); }
 .fp-sel { width: 100%; min-height: 46px; font-size: 1rem; }
 .fp-act { display: flex; gap: 10px; margin-top: 20px; position: sticky; bottom: 0; padding: 12px 0 2px; background: var(--bg); }
 .fp-act .btn { flex: 1; justify-content: center; min-height: 48px; }
-.sh .top { position: static; z-index: auto; background: transparent; border-bottom: 0; }
+.sh .top { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 0; margin: -18px -18px 0; padding: 14px 18px 10px; }
 .fp-n { margin: 6px 0 0; color: var(--muted); font-size: .9rem; }
 .note { margin: 8px 0 0; font-size: .78rem; color: var(--muted); }
 /* Résultats */
@@ -148,10 +148,10 @@ select.chip option { background: var(--surface); color: var(--ink); }
 .prose a { color: var(--gold-text); }
 .prose .tel { font-weight: 700; color: var(--gold-text); }
 /* Fiche dédiée */
-dialog { width: min(560px, 100vw); max-height: 92vh; margin: auto auto 0; padding: 0; border: 1px solid var(--line); border-radius: 20px 20px 0 0; background: var(--bg); color: var(--ink); overflow: auto; }
+dialog { width: min(560px, 100vw); max-height: 92vh; max-height: 92dvh; overscroll-behavior: contain; margin: auto auto 0; padding: 0; border: 1px solid var(--line); border-radius: 20px 20px 0 0; background: var(--bg); color: var(--ink); overflow: auto; }
 @media (min-width: 640px) { dialog { margin: auto; border-radius: 20px; } }
 dialog::backdrop { background: rgba(3, 8, 14, .7); }
-.sh { padding: 18px 18px 22px; border-top: 5px solid var(--cat); }
+.sh { padding: 18px 18px calc(22px + env(safe-area-inset-bottom)); border-top: 5px solid var(--cat); }
 .sh .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .sh .kind { font-size: .82rem; font-weight: 700; color: var(--cat); letter-spacing: .02em; text-transform: uppercase; }
 .sh h2 { margin: 4px 0 0; font-family: var(--font-display); font-weight: 600; font-size: 1.6rem; line-height: 1.15; text-wrap: balance; }
