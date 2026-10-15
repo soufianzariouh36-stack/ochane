@@ -6,6 +6,7 @@
 <title>Ochane · Paris</title>
 <meta name="description" content="Ochane : le guide visuel des villes, quartier par quartier. Restaurants, monuments, hôtels, sorties, boutiques, agenda et parcours.">
 <meta name="theme-color" content="#0D2B52">
+<meta name="ochane-build" content="2026-10-16-recherche-v2">
 <meta property="og:title" content="Ochane">
 <meta property="og:description" content="Le guide visuel des villes, quartier par quartier.">
 <meta property="og:type" content="website">
@@ -67,6 +68,16 @@ select.chip option { background: var(--surface); color: var(--ink); }
 .rail { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; align-items: center; }
 .rail::-webkit-scrollbar { display: none; }
 .rail + .rail { margin-top: 8px; }
+.fbtn { gap: 8px; }
+.fbtn .fcount { background: var(--gold-ink); color: var(--gold); border-radius: 999px; min-width: 20px; height: 20px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; opacity: 1; }
+.fp-sec { margin: 16px 0 0; }
+.fp-sec h3 { margin: 0 0 8px; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.fp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.fp-sel { width: 100%; min-height: 46px; font-size: 1rem; }
+.fp-act { display: flex; gap: 10px; margin-top: 20px; position: sticky; bottom: 0; padding: 12px 0 2px; background: var(--bg); }
+.fp-act .btn { flex: 1; justify-content: center; min-height: 48px; }
+#fdlg .sh .top { background: transparent; }
+.fp-n { margin: 6px 0 0; color: var(--muted); font-size: .9rem; }
 .note { margin: 8px 0 0; font-size: .78rem; color: var(--muted); }
 /* Résultats */
 .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 4px 0 12px; }
@@ -592,6 +603,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
 
 <dialog id="editor" aria-labelledby="ed-title"><form id="ed-form" method="dialog" class="sh" style="border-top-color:var(--gold-text)"><div class="top"><h2 id="ed-title">Modifier</h2><button type="button" class="ibtn" id="ed-close" aria-label="Fermer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="ed-fields"></div><p class="pending" id="ed-err" role="alert" hidden></p><div class="acts"><button type="button" class="btn" id="ed-cancel">Annuler</button><button type="submit" class="btn gold" id="ed-save">Enregistrer</button></div></form></dialog>
 <dialog id="sheet" aria-labelledby="sh-name"><div id="sheet-in"></div></dialog>
+<dialog id="fdlg" aria-labelledby="fp-t"><div class="sh" style="border-top-color:var(--gold)"><div class="top"><h2 id="fp-t">Filtres <span id="fp-count"></span></h2><button type="button" class="ibtn" id="fp-close" aria-label="Fermer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div id="fp-body"></div><div class="fp-act"><button type="button" class="btn" id="fp-reset">Réinitialiser</button><button type="button" class="btn gold" id="fp-apply">Appliquer</button></div></div></dialog>
 <dialog id="citydlg" aria-labelledby="city-t"><div class="sh" style="border-top-color:var(--gold)"><div class="top"><h2 id="city-t">Choisir une ville</h2><button type="button" class="ibtn" id="city-close" aria-label="Fermer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><ul class="cities" id="citylist"></ul></div></dialog>
 <p class="toast" id="toast" role="status" hidden></p>
 
@@ -1253,10 +1265,33 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     }
     return true;
   }
+  var lastAvail = FILTERS;
+  function isMobile() { return window.matchMedia("(max-width: 699px)").matches; }
+  function activeFilterCount(searching) {
+    var n = Object.keys(state.f).filter(function (k) { return state.f[k]; }).length;
+    return n + (state.arr !== null && !searching ? 1 : 0);
+  }
   function anyFilter() { return Object.keys(state.f).some(function (k) { return state.f[k]; }); }
   function tokens() { return norm(state.q).split(/\s+/).filter(Boolean); }
   function inSearch(x, tk) { return tk.every(function (t) { return x.hay.indexOf(t) !== -1; }); }
 
+  /* Classement des résultats de recherche : 0 nom exact, 1 nom commençant par la requête, 2 nom contenant la requête,
+     3 quartier / métro / arrondissement, 4 description. À rang égal, nom le plus court d'abord, puis ordre d'origine. */
+  function flat(s) { return norm(s).replace(/[^a-z0-9]+/g, " ").trim(); }
+  function searchRank(x, tk, q) {
+    var n = flat(x.name), area = flat([x.metro, x.q, NAMES[x.arr], ord(x.arr) + " arrondissement"].join(" "));
+    if (n === q) return 0;
+    if (n.indexOf(q) === 0) return 1;
+    if (n.indexOf(q) !== -1 || tk.every(function (t) { return n.indexOf(t) !== -1; })) return 2;
+    if (area.indexOf(q) !== -1 || tk.every(function (t) { return (n + " " + area).indexOf(t) !== -1; })) return 3;
+    return 4;
+  }
+  function rankList(list, tk) {
+    var q = flat(tk.join(" ")), tt = q.split(" ").filter(Boolean);
+    return list.map(function (x, i) { return { x: x, r: searchRank(x, tt, q), i: i }; }).sort(function (a, b) {
+      return a.r - b.r || (a.r < 3 ? a.x.name.length - b.x.name.length : 0) || a.i - b.i;
+    }).map(function (o) { return o.x; });
+  }
   function compute() {
     var tk = tokens(), searching = tk.length > 0;
     var wide = searching ? ALL.filter(function (x) { return inSearch(x, tk); }) : ALL;
@@ -1265,6 +1300,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     var scopeF = scope.filter(passF);
     scopeF.forEach(function (x) { counts.all++; counts[x.cat]++; });
     var list = state.cat === "all" ? scopeF : scopeF.filter(function (x) { return x.cat === state.cat; });
+    if (searching) list = rankList(list, tk);
     var mapCounts = {};
     wide.filter(passF).filter(function (x) { return state.cat === "all" || x.cat === state.cat; }).forEach(function (x) { mapCounts[x.arr] = (mapCounts[x.arr] || 0) + 1; });
     return { searching: searching, scope: scope, counts: counts, list: list, mapCounts: mapCounts };
@@ -1406,16 +1442,23 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     }).join("");
     // filtres
     var opts = '<option value="">Tous les arrondissements</option>' + ARR.map(function (a) { return '<option value="' + a.n + '"' + (state.arr === a.n && !r.searching ? " selected" : "") + ">" + ord(a.n) + " · " + esc(NAMES[a.n]) + "</option>"; }).join("");
-    var chips = FILTERS.filter(function (f) {
+    var avail = FILTERS.filter(function (f) {
       if (!DIET[f[0]]) return true;
       if (state.cat !== "all" && state.cat !== "r") return false;
       return state.f[f[0]] || r.scope.some(function (x) { return x.cat === "r" && x[f[0]]; });
-    }).map(function (f) {
-      return '<button type="button" class="chip" data-f="' + f[0] + '" aria-pressed="' + (!!state.f[f[0]]) + '">' + esc(f[1]) + "</button>";
-    }).join("");
-    var keepFocus = document.activeElement && document.activeElement.id === "arrsel";
-    $("filters").innerHTML = '<select class="chip" id="arrsel" aria-label="Arrondissement">' + opts + "</select>" + chips;
-    if (keepFocus) $("arrsel").focus();
+    });
+    if (isMobile()) {
+      var nf = activeFilterCount(r.searching);
+      $("filters").innerHTML = '<button type="button" class="chip fbtn" id="fopen" aria-haspopup="dialog" aria-pressed="' + (nf > 0) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Filtres' + (nf ? ' <span class="n fcount">' + nf + "</span>" : "") + "</button>";
+    } else {
+      var chips = avail.map(function (f) {
+        return '<button type="button" class="chip" data-f="' + f[0] + '" aria-pressed="' + (!!state.f[f[0]]) + '">' + esc(f[1]) + "</button>";
+      }).join("");
+      var keepFocus = document.activeElement && document.activeElement.id === "arrsel";
+      $("filters").innerHTML = '<select class="chip" id="arrsel" aria-label="Arrondissement">' + opts + "</select>" + chips;
+      if (keepFocus) $("arrsel").focus();
+    }
+    lastAvail = avail;
     // mode
     all("[data-mode]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === state.mode)); });
     $("mapwrap").hidden = state.mode !== "map";
@@ -1436,8 +1479,8 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     var eb = $("empty-btn"), et = $("empty-text");
     if (!r.list.length && state.mode === "list") {
       $("empty").hidden = false;
-      if (r.searching) { et.textContent = "Aucune adresse ne correspond à cette recherche."; eb.textContent = "Effacer la recherche"; eb.dataset.mode = "clear"; }
-      else if (anyFilter()) { et.textContent = "Aucune adresse ne correspond à ces filtres."; eb.textContent = "Enlever les filtres"; eb.dataset.mode = "filters"; }
+      if (anyFilter()) { et.textContent = "Aucune adresse ne correspond à ces filtres."; eb.textContent = "Enlever les filtres"; eb.dataset.mode = "filters"; }
+      else if (r.searching) { et.textContent = "Aucune adresse ne correspond à cette recherche."; eb.textContent = "Effacer la recherche"; eb.dataset.mode = "clear"; }
       else { et.textContent = "Pas encore d'adresse de ce type pour cet arrondissement."; eb.textContent = "Voir tous les types"; eb.dataset.mode = "cat"; }
     } else { $("empty").hidden = true; }
   }
@@ -1807,6 +1850,47 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
         (c.id === CITY.id ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg>' : "") + "</button></li>";
     }).join("");
   }
+  /* ---------- Panneau Filtres (mobile) ---------- */
+  var draft = null;
+  function draftCount() { return Object.keys(draft.f).filter(function (k) { return draft.f[k]; }).length + (draft.arr !== null ? 1 : 0); }
+  function renderFilterPanel() {
+    var saveF = state.f, saveA = state.arr;
+    state.f = draft.f; state.arr = draft.arr;
+    var r = compute(), n = r.list.length;
+    state.f = saveF; state.arr = saveA;
+    var c = draftCount(), searching = tokens().length > 0;
+    var opts = '<option value="">Tous les arrondissements</option>' + ARR.map(function (a) { return '<option value="' + a.n + '"' + (draft.arr === a.n ? " selected" : "") + ">" + ord(a.n) + " · " + esc(NAMES[a.n]) + "</option>"; }).join("");
+    var chips = lastAvail.map(function (f) { return '<button type="button" class="chip" data-pf="' + f[0] + '" aria-pressed="' + (!!draft.f[f[0]]) + '">' + esc(f[1]) + "</button>"; }).join("");
+    $("fp-body").innerHTML = '<div class="fp-sec"><h3>Arrondissement</h3><select class="chip fp-sel" id="fp-arr" aria-label="Arrondissement">' + opts + "</select>" +
+      (searching ? '<p class="fp-n">Choisir un arrondissement efface la recherche en cours.</p>' : "") + '</div><div class="fp-sec"><h3>Critères</h3><div class="fp-chips">' + chips + "</div></div>" +
+      '<p class="fp-n" aria-live="polite">' + n + " adresse" + (n > 1 ? "s" : "") + "</p>";
+    $("fp-count").textContent = c ? "(" + c + " actif" + (c > 1 ? "s" : "") + ")" : "";
+  }
+  function openFilters() {
+    draft = { f: JSON.parse(JSON.stringify(state.f)), arr: state.arr };
+    renderFilterPanel();
+    var d = $("fdlg"); if (d.showModal) { if (!d.open) d.showModal(); } else d.setAttribute("open", "");
+  }
+  function closeFilters() { var d = $("fdlg"); if (d.close) d.close(); else d.removeAttribute("open"); }
+  document.addEventListener("click", function (e) {
+    var t = e.target, el;
+    if ((el = t.closest("#fopen"))) { openFilters(); return; }
+    if ((el = t.closest("[data-pf]"))) { draft.f[el.dataset.pf] = !draft.f[el.dataset.pf]; renderFilterPanel(); return; }
+    if (t.closest("#fp-reset")) { draft.f = {}; draft.arr = null; renderFilterPanel(); return; }
+    if (t.closest("#fp-close")) { closeFilters(); return; }
+    if (t.closest("#fp-apply")) {
+      var changedArr = draft.arr !== state.arr;
+      state.f = draft.f;
+      if (changedArr) { state.arr = draft.arr; if (tokens().length) { state.q = ""; $("q").value = ""; $("q2").value = ""; } }
+      closeFilters(); renderResults(); return;
+    }
+    if (e.target === $("fdlg")) closeFilters();
+  });
+  document.addEventListener("change", function (e) {
+    if (e.target.id === "fp-arr") { draft.arr = e.target.value ? +e.target.value : null; renderFilterPanel(); $("fp-arr").focus(); }
+  });
+  var mq = window.matchMedia("(max-width: 699px)");
+  (mq.addEventListener ? mq.addEventListener.bind(mq, "change") : mq.addListener.bind(mq))(function () { if (state.view === "results") renderResults(); });
   function openCity() { renderCities(); var d = $("citydlg"); if (d.showModal) { if (!d.open) d.showModal(); } else d.setAttribute("open", ""); }
   function closeCity() { var d = $("citydlg"); if (d.close) d.close(); else d.removeAttribute("open"); }
   $("citybtn").addEventListener("click", openCity);
