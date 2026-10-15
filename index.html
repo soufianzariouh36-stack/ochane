@@ -2150,7 +2150,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (rows) {
         if (!rows || !rows.length) return;
-        rows.forEach(function (r) { if (r.data && r.data._deleted) delete DETAILS[r.key]; else if (r.data) DETAILS[r.key] = r.data; });
+        rows.forEach(function (r) { if (r.data && (r.data._deleted || r.data.archived || r.data.status === "draft")) delete DETAILS[r.key]; else if (r.data) DETAILS[r.key] = r.data; });
         refresh();
       }).catch(function () {});
   })();

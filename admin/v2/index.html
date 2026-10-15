@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ochane · Admin v2</title>
+<style>
+:root { --bg:#f6f7fa; --panel:#fff; --ink:#0f2744; --muted:#667389; --line:#e3e8f0; --navy:#0d2b52; --navy2:#16396b; --gold:#c8962e; --ok:#12805c; --warn:#b26a00; --bad:#b3261e; --soft:#eef2f8; --r:12px; }
+:root[data-theme="dark"] { --bg:#0a1320; --panel:#111e30; --ink:#e6edf7; --muted:#8fa0b8; --line:#22344d; --soft:#16263c; --navy:#07101c; --navy2:#0e1c2f; }
+* { box-sizing:border-box; }
+html, body { height:100%; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14.5px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; }
+button { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:9px; padding:7px 12px; transition:background .15s,border-color .15s; }
+button:hover { border-color:var(--gold); }
+button:disabled { opacity:.45; cursor:not-allowed; }
+button.pri { background:var(--gold); border-color:var(--gold); color:#fff; font-weight:700; }
+button.ghost { border-color:transparent; background:transparent; }
+button.bad { color:var(--bad); }
+input, select, textarea { font:inherit; width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:9px; background:var(--panel); color:var(--ink); }
+input:focus, select:focus, textarea:focus, button:focus-visible { outline:2px solid var(--gold); outline-offset:1px; }
+textarea { min-height:84px; resize:vertical; }
+label { display:block; font-weight:650; font-size:.84rem; margin:14px 0 4px; }
+label small { font-weight:400; color:var(--muted); }
+.hidden { display:none !important; }
+/* connexion */
+#login { min-height:100%; display:grid; place-items:center; padding:20px; background:var(--navy); }
+#login .box { background:var(--panel); border-radius:16px; padding:28px; width:min(380px,100%); }
+#login h1 { margin:0 0 4px; letter-spacing:.14em; font-size:1.1rem; }
+#loginMsg { color:var(--bad); min-height:1.2em; margin-top:10px; font-size:.88rem; }
+/* app */
+#app { display:grid; grid-template-columns:240px 1fr; min-height:100%; }
+#side { background:var(--navy); color:#cdd8ea; padding:16px 12px; display:flex; flex-direction:column; gap:2px; position:sticky; top:0; height:100vh; overflow:auto; }
+#side .logo { color:#fff; font-weight:800; letter-spacing:.16em; padding:6px 10px 16px; display:flex; align-items:center; gap:8px; }
+#side .logo i { width:10px; height:10px; border-radius:50%; background:var(--gold); display:inline-block; }
+.nav { display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; background:transparent; border:0; color:inherit; padding:8px 10px; border-radius:8px; }
+.nav:hover { background:var(--navy2); }
+.nav.on { background:var(--navy2); color:#fff; box-shadow:inset 3px 0 var(--gold); }
+.nav[disabled] { opacity:.5; }
+.nav .n { font-size:.72rem; opacity:.7; }
+.nav .soon { font-size:.62rem; border:1px solid #4a5f80; padding:0 6px; border-radius:99px; }
+#side .sp { flex:1; }
+#side .who { font-size:.8rem; padding:8px 10px; opacity:.85; word-break:break-all; }
+#main { min-width:0; display:flex; flex-direction:column; }
+#top { display:flex; gap:10px; align-items:center; padding:10px 20px; background:var(--panel); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20; }
+#top .search { flex:1; max-width:460px; }
+#top .city { white-space:nowrap; font-size:.85rem; color:var(--muted); border:1px solid var(--line); padding:6px 10px; border-radius:9px; }
+#burger { display:none; }
+#content { padding:22px 24px 60px; max-width:1240px; width:100%; margin:0 auto; }
+h2.t { margin:0 0 4px; font-size:1.45rem; letter-spacing:-.01em; }
+.sub { color:var(--muted); margin:0 0 18px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+.stat { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; text-align:left; }
+.stat b { display:block; font-size:1.7rem; line-height:1.1; }
+.stat span { color:var(--muted); font-size:.82rem; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:16px; }
+.bar { height:10px; background:var(--soft); border-radius:99px; overflow:hidden; margin:8px 0 4px; }
+.bar i { display:block; height:100%; background:linear-gradient(90deg,var(--gold),#e3b95a); border-radius:99px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+h3 { margin:0 0 10px; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+.todo { display:flex; justify-content:space-between; width:100%; text-align:left; border:0; border-bottom:1px solid var(--line); border-radius:0; padding:10px 2px; background:transparent; }
+.todo:last-child { border-bottom:0; }
+.todo b { color:var(--gold); }
+.recent { display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+.recent small { color:var(--muted); }
+/* tableau */
+.tools { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; }
+.tools select { width:auto; }
+.tools .cnt { color:var(--muted); font-size:.85rem; margin-left:auto; }
+table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; }
+th { text-align:left; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:10px 10px; background:var(--soft); }
+td { padding:8px 10px; border-top:1px solid var(--line); vertical-align:middle; }
+tr.row:hover td { background:var(--soft); }
+.thumb { width:46px; height:46px; border-radius:8px; background:var(--soft); object-fit:cover; display:block; }
+.thumb.ph { display:grid; place-items:center; color:var(--muted); font-size:.7rem; }
+.nm { font-weight:650; cursor:pointer; }
+.chip { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
+.chip.ok { color:var(--ok); border-color:var(--ok); } .chip.warn { color:var(--warn); border-color:var(--warn); } .chip.bad { color:var(--bad); border-color:var(--bad); } .chip.mut { color:var(--muted); }
+.acts { display:flex; gap:4px; flex-wrap:wrap; }
+.acts button { padding:4px 8px; font-size:.8rem; }
+.pager { display:flex; gap:8px; justify-content:center; align-items:center; margin-top:14px; }
+/* éditeur */
+#edbar { position:sticky; top:53px; z-index:15; background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; }
+#edbar .ttl { flex:1; min-width:200px; }
+#edbar h2 { margin:0; font-size:1.15rem; }
+#edbar small { color:var(--muted); }
+.tabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:14px; overflow:auto; }
+.tab { border:0; border-radius:8px 8px 0 0; background:transparent; padding:9px 14px; white-space:nowrap; }
+.tab.on { border-bottom:3px solid var(--gold); font-weight:700; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.miss { color:var(--warn); font-size:.82rem; }
+.dirtydot { color:var(--warn); font-weight:700; }
+#photoPrev { max-width:420px; width:100%; border-radius:10px; display:block; margin:8px 0; }
+.pv { margin:0 auto; background:var(--bg); border:1px solid var(--line); border-radius:16px; padding:16px; transition:width .2s; }
+.pv h4 { margin:0; font-size:1.5rem; }
+.pv figure { margin:12px 0 0; } .pv img { width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:12px; display:block; }
+.pv .fx { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-top:10px; }
+.pv .fx h5 { margin:0 0 4px; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.pv .fx ul { margin:4px 0; padding-left:18px; }
+#toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:10px 18px; border-radius:10px; z-index:99; max-width:90vw; }
+#toast.err { background:var(--bad); }
+@media (max-width:900px) {
+  #app { grid-template-columns:1fr; }
+  #side { position:fixed; inset:0 auto 0 0; width:260px; z-index:60; transform:translateX(-100%); transition:transform .2s; height:100%; }
+  #side.open { transform:none; }
+  #burger { display:inline-block; }
+  .grid2, .g2 { grid-template-columns:1fr; }
+  #content { padding:16px 14px 60px; }
+  #top .city, #bAdd, #bIncomp { display:none; }
+  /* tableau -> cartes */
+  table, tbody, tr, td { display:block; }
+  thead { display:none; }
+  table { border:0; background:transparent; }
+  tr.row { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); margin-bottom:10px; padding:10px; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; }
+  tr.row td { border:0; padding:0; }
+  tr.row td:nth-child(2) { flex:1 1 calc(100% - 64px); }
+  tr.row td:nth-child(3), tr.row td:nth-child(4) { color:var(--muted); font-size:.85rem; }
+  tr.row td:last-child { flex:1 1 100%; }
+}
+</style>
+</head>
+<body>
+<script src="../../data/ochane-config.js"></script>
+
+<div id="login">
+  <div class="box">
+    <h1>OCHANE · ADMIN</h1>
+    <div style="color:var(--muted)">Connexion administrateur</div>
+    <label for="em">Email</label><input id="em" type="text" autocomplete="username" inputmode="email">
+    <label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password">
+    <button id="bLogin" class="pri" style="width:100%;margin-top:16px">Se connecter</button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <aside id="side">
+    <div class="logo"><i></i>OCHANE</div>
+    <button class="nav on" data-v="dash">Tableau de bord</button>
+    <button class="nav" data-v="list" data-cat="all">Tous les lieux <span class="n" id="n-all"></span></button>
+    <button class="nav" data-v="list" data-cat="r">Restaurants <span class="n" id="n-r"></span></button>
+    <button class="nav" data-v="list" data-cat="m">Monuments <span class="n" id="n-m"></span></button>
+    <button class="nav" data-v="list" data-cat="h">Hôtels <span class="n" id="n-h"></span></button>
+    <button class="nav" data-v="list" data-cat="sa">Sorties <span class="n" id="n-sa"></span></button>
+    <button class="nav" data-v="list" data-cat="b">Boutiques <span class="n" id="n-b"></span></button>
+    <button class="nav" disabled>Agenda <span class="soon">bientôt</span></button>
+    <button class="nav" disabled>Parcours <span class="soon">bientôt</span></button>
+    <button class="nav" disabled>Médiathèque <span class="soon">bientôt</span></button>
+    <button class="nav" data-v="verif">Vérifications <span class="n" id="n-verif"></span></button>
+    <button class="nav" disabled>Paramètres <span class="soon">bientôt</span></button>
+    <div class="sp"></div>
+    <div class="who" id="who"></div>
+    <button class="nav" id="bOut">Déconnexion</button>
+  </aside>
+  <div id="main">
+    <div id="top">
+      <button id="burger" aria-label="Menu">☰</button>
+      <input id="gq" class="search" type="search" placeholder="Rechercher un lieu, une adresse, un quartier…" autocomplete="off">
+      <span class="city">Paris ▾</span>
+      <button id="bIncomp">Fiches incomplètes</button>
+      <button id="bAdd" disabled title="Bientôt : les lieux sont encore dans index.html">+ Ajouter un lieu</button>
+      <button id="bTheme" aria-label="Thème">◐</button>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+<div id="toast" class="hidden"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var CFG = window.OCHANE_CONFIG || {}, SB = { access: "", refresh: "", email: "" };
+  var CATS = { r: "Restaurant", s: "Soirée", m: "Monument ou musée", h: "Hôtel", a: "Activité", b: "Boutique" };
+  var PER = 50, STALE_DAYS = 180;
+  var PLACES = [], DET = {}, META = {}, histOK = true, saving = false, dirty = false;
+  var S = { view: "dash", cat: "all", f: "all", q: "", sort: "name", page: 0, cur: null, tab: "info", pvw: "desk" };
+  var photoBlob = null, histRows = null;
+
+  function norm(s) { return String(s == null ? "" : s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  function slug(s) { return norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
+  function ordn(n) { return n === 1 ? "1er" : n + "e"; }
+  function key(p) { return p.arr + "|" + p.name; }
+  function arr(v) { return Array.isArray(v) ? v : (v ? [v] : []); }
+  function toast(t, err) { var e = $("toast"); e.textContent = t; e.className = err ? "err" : ""; clearTimeout(toast.t); toast.t = setTimeout(function () { e.className = "hidden"; }, err ? 6000 : 2600); }
+
+  /* ---------- Supabase ---------- */
+  async function sb(path, opt, retry) {
+    opt = opt || {}; opt.cache = "no-store";
+    opt.headers = Object.assign({ apikey: CFG.supabaseKey, Authorization: "Bearer " + (SB.access || CFG.supabaseKey) }, opt.headers || {});
+    var r = await fetch(CFG.supabaseUrl + path, opt);
+    if (r.status === 401 && !retry && SB.refresh) { await token({ grant_type: "refresh_token", refresh_token: SB.refresh }); return sb(path, opt, true); }
+    if (!r.ok) { var t = ""; try { var j = await r.json(); t = j.message || j.msg || j.error || ""; } catch (e) { } var er = new Error((t || "Erreur") + " (" + r.status + ")"); er.status = r.status; throw er; }
+    return r;
+  }
+  async function token(body) {
+    var r = await fetch(CFG.supabaseUrl + "/auth/v1/token?grant_type=" + body.grant_type, { method: "POST", headers: { apikey: CFG.supabaseKey, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    var j = await r.json();
+    if (!r.ok) throw new Error(r.status === 400 ? "Email ou mot de passe incorrect." : (j.msg || "Connexion impossible"));
+    SB.access = j.access_token; SB.refresh = j.refresh_token; if (j.user && j.user.email) SB.email = j.user.email;
+    try { localStorage.setItem("ochane-admin-sb", JSON.stringify({ refresh: SB.refresh })); } catch (e) { }
+    return j;
+  }
+
+  /* ---------- données ---------- */
+  function extractArr(html) {
+    var i = html.indexOf("var ARR = ["); if (i < 0) throw new Error("Liste des lieux introuvable");
+    var s = html.indexOf("[", i), depth = 0, inStr = false, q = "", j;
+    for (j = s; j < html.length; j++) {
+      var c = html[j];
+      if (inStr) { if (c === "\\") j++; else if (c === q) inStr = false; continue; }
+      if (c === '"' || c === "'") { inStr = true; q = c; } else if (c === "[") depth++; else if (c === "]") { depth--; if (depth === 0) break; }
+    }
+    return (new Function("return " + html.slice(s, j + 1)))();
+  }
+  async function loadAll() {
+    var html = await (await fetch("../../index.html", { cache: "no-store" })).text();
+    var a = extractArr(html); PLACES = [];
+    a.forEach(function (g) { g.items.forEach(function (it) { PLACES.push({ arr: g.n, kind: it[0], name: it[1], q: g.q, metro: it[4] || "", desc: it[3] || "" }); }); });
+    var w = {}; try { (new Function("window", await (await fetch("../../data/place-details.js", { cache: "no-store" })).text()))(w); } catch (e) { }
+    DET = w.OCHANE_DETAILS || {}; META = {};
+    var rows = await (await sb("/rest/v1/place_details?select=key,data,updated_at")).json();
+    rows.forEach(function (r) { META[r.key] = { updated_at: r.updated_at }; if (r.data && r.data._deleted) delete DET[r.key]; else if (r.data) DET[r.key] = r.data; });
+    PLACES.forEach(function (p) { p.k = key(p); p.hay = norm(p.name + " " + p.q + " " + ordn(p.arr) + " arrondissement " + p.metro + " " + ((DET[p.k] || {}).address || "")); });
+  }
+  function rsrc(src) { return /^https?:/.test(src || "") ? src : (src ? "../../" + src : ""); }
+
+  /* ---------- statuts & complétude ---------- */
+  var REQ = {
+    m: ["summary", "address", "hours", "price", "site", "photo"], r: ["summary", "address", "photo"], h: ["summary", "address", "photo", "site"],
+    s: ["summary", "address", "photo"], a: ["summary", "address", "photo"], b: ["summary", "address", "photo"]
+  };
+  var REC = { m: ["metro", "access", "tip", "verified"], r: ["hours", "site", "metro", "tip"], h: ["metro", "access", "tip"], s: ["hours", "site", "metro", "tip"], a: ["hours", "site", "metro", "tip"], b: ["hours", "site", "metro", "tip"] };
+  var LBL = { summary: "Description courte", address: "Adresse", hours: "Horaires", price: "Tarifs", site: "Site officiel", photo: "Photo", metro: "Accès métro", access: "Accessibilité", tip: "Conseil pratique", verified: "Date de vérification" };
+  function has(d, f) {
+    if (f === "photo") return !!(d.photo && d.photo.src && d.photo.credit && d.photo.license);
+    if (f === "hours") return !!(d.hours && (arr(d.hours.lines).length || d.hours.note));
+    if (f === "price") return !!(d.price && (arr(d.price.lines).length || arr(d.price.free).length));
+    if (f === "access") return !!(d.access && (d.access.level || d.access.note));
+    if (f === "metro") return arr(d.metro).length > 0;
+    return !!d[f];
+  }
+  function info(p) {
+    var d = DET[p.k], o = { d: d, fiche: !!d };
+    if (!d) { o.status = "none"; o.pct = 0; o.missing = (REQ[p.kind] || []).map(function (f) { return LBL[f]; }); o.complete = false; o.photo = false; o.ver = "none"; return o; }
+    var req = REQ[p.kind] || REQ.r, rec = REQ[p.kind] ? REC[p.kind] : REC.r, got = 0, tot = 0, miss = [], reqMiss = 0;
+    req.forEach(function (f) { tot += 2; if (has(d, f)) got += 2; else { miss.push(LBL[f]); reqMiss++; } });
+    rec.forEach(function (f) { tot += 1; if (has(d, f)) got += 1; else miss.push(LBL[f] + " (recommandé)"); });
+    o.pct = Math.round(100 * got / tot); o.missing = miss; o.complete = reqMiss === 0; o.photo = has(d, "photo");
+    o.status = d.archived ? "archived" : (d.status === "draft" ? "draft" : "published");
+    o.ver = d.verification || (d.verified ? "verified" : "unverified");
+    o.stale = !!(d.verified && (Date.now() - new Date(d.verified).getTime()) / 864e5 > STALE_DAYS);
+    return o;
+  }
+  var STAT = { none: ["Aucune fiche", "mut"], draft: ["Brouillon", "warn"], published: ["Publiée", "ok"], archived: ["Archivée", "mut"] };
+  var VER = { none: ["—", "mut"], unverified: ["Non vérifiée", "mut"], toverify: ["À vérifier", "warn"], verified: ["Vérifiée", "ok"] };
+  function chip(t, c) { return '<span class="chip ' + c + '">' + t + '</span>'; }
+  function fmtDate(d) { try { return new Date(d).toLocaleDateString("fr-FR"); } catch (e) { return ""; } }
+  function ago(iso) { if (!iso) return ""; var m = Math.round((Date.now() - new Date(iso).getTime()) / 6e4); return m < 60 ? "il y a " + Math.max(m, 1) + " min" : m < 1440 ? "il y a " + Math.round(m / 60) + " h" : fmtDate(iso); }
+
+  /* ---------- navigation ---------- */
+  function go(view, o) {
+    if (dirty && S.view === "edit" && view !== "edit" && !confirm("Modifications non enregistrées. Quitter quand même ?")) return;
+    dirty = false; Object.assign(S, { view: view }, o || {});
+    document.querySelectorAll(".nav[data-v]").forEach(function (b) { b.classList.toggle("on", b.dataset.v === (S.view === "edit" ? "list" : S.view) && (b.dataset.cat === undefined || b.dataset.cat === S.cat || (S.view === "edit"))); });
+    $("side").classList.remove("open"); render(); window.scrollTo(0, 0);
+  }
+  function render() { var c = $("content"); if (S.view === "dash") dash(c); else if (S.view === "list") list(c); else if (S.view === "verif") verif(c); else if (S.view === "edit") editor(c); counts(); }
+  function counts() {
+    var n = { all: 0, r: 0, m: 0, h: 0, sa: 0, b: 0 }, v = 0;
+    PLACES.forEach(function (p) { n.all++; if (p.kind === "s" || p.kind === "a") n.sa++; else n[p.kind]++; var i = info(p); if (i.fiche && (i.ver === "toverify" || i.stale)) v++; });
+    Object.keys(n).forEach(function (k) { $("n-" + k).textContent = n[k]; }); $("n-verif").textContent = v || "";
+  }
+
+  /* ---------- tableau de bord ---------- */
+  function dash(c) {
+    var t = PLACES.length, full = 0, inc = 0, nophoto = 0, tov = 0, pub = 0, nofiche = 0, stale = 0, drafts = 0, noPhotoFiche = 0, missEss = 0;
+    PLACES.forEach(function (p) {
+      var i = info(p); if (!i.fiche) { nofiche++; nophoto++; return; }
+      if (i.complete) full++; else { inc++; missEss++; }
+      if (!i.photo) { nophoto++; noPhotoFiche++; } if (i.ver === "toverify" || i.ver === "unverified") tov++; if (i.stale) stale++;
+      if (i.status === "published") pub++; if (i.status === "draft") drafts++;
+    });
+    var fiches = t - nofiche, pct = t ? Math.round(100 * full / t) : 0;
+    var recent = Object.keys(META).filter(function (k) { return DET[k]; }).sort(function (a, b) { return (META[b].updated_at || "") > (META[a].updated_at || "") ? 1 : -1; }).slice(0, 6);
+    var byKey = {}; PLACES.forEach(function (p) { byKey[p.k] = p; });
+    function todo(label, n, f) { return '<button class="todo" data-go="' + f + '"><span>' + label + '</span><b>' + n + '</b></button>'; }
+    c.innerHTML = '<h2 class="t">Tableau de bord</h2><p class="sub">État réel du contenu OCHANE · Paris</p>' +
+      '<div class="cards">' +
+      stat("Lieux au total", t, "all") + stat("Fiches complètes", full, "complete") + stat("Fiches incomplètes", inc, "incomplete") + stat("Lieux sans photo", nophoto, "nophoto") + stat("Fiches à vérifier", tov, "toverify") + stat("Fiches publiées", pub, "published") +
+      '</div>' +
+      '<div class="panel" style="margin-top:14px"><h3>Progression globale</h3><b style="font-size:1.1rem">Fiches complétées : ' + full + ' / ' + t + '</b> <span style="color:var(--muted)">(' + pct + ' %)</span><div class="bar"><i style="width:' + pct + '%"></i></div><small style="color:var(--muted)">Complète ≠ vérifiée ≠ publiée : trois états distincts. ' + fiches + ' lieux ont une fiche.</small></div>' +
+      '<div class="grid2"><div class="panel"><h3>À faire en priorité</h3>' +
+      todo("Lieux sans fiche", nofiche, "nofiche") + todo("Fiches sans photographie", noPhotoFiche, "nophoto-fiche") + todo("Fiches avec informations essentielles manquantes", missEss, "incomplete") + todo("Vérification ancienne (plus de " + STALE_DAYS + " jours)", stale, "stale") + todo("Brouillons en attente", drafts, "draft") + '</div>' +
+      '<div class="panel"><h3>Dernières modifications</h3>' + (recent.length ? recent.map(function (k) { var p = byKey[k]; return p ? '<div class="recent" data-edit="' + esc(k) + '"><span>' + esc(p.name) + '</span><small>' + ago(META[k].updated_at) + '</small></div>' : ""; }).join("") : '<span style="color:var(--muted)">Aucune modification enregistrée depuis l\'admin pour l\'instant.</span>') + '</div></div>';
+    function stat(l, n, f) { return '<button class="stat" data-go="' + f + '"><b>' + n + '</b><span>' + l + '</span></button>'; }
+    c.querySelectorAll("[data-go]").forEach(function (b) { b.onclick = function () { go("list", { cat: "all", f: b.dataset.go, q: "", page: 0 }); }; });
+    c.querySelectorAll("[data-edit]").forEach(function (b) { b.onclick = function () { openEdit(byKey[b.dataset.edit]); }; });
+  }
+
+  /* ---------- liste ---------- */
+  var FILTERS = [["all", "Tous"], ["complete", "Fiches complètes"], ["incomplete", "Fiches incomplètes"], ["nofiche", "Sans fiche"], ["nophoto", "Sans photo"], ["nophoto-fiche", "Fiche sans photo"], ["draft", "Brouillons"], ["published", "Publiés"], ["archived", "Archivés"], ["toverify", "À vérifier"], ["stale", "Vérification ancienne"]];
+  var SORTS = [["name", "Alphabétique"], ["cat", "Catégorie"], ["arr", "Arrondissement"], ["mod", "Dernière modification"], ["ver", "Date de vérification"], ["pct", "Niveau de complétude"]];
+  function match(p, i) {
+    if (S.cat !== "all" && !(S.cat === "sa" ? (p.kind === "s" || p.kind === "a") : p.kind === S.cat)) return false;
+    var f = S.f;
+    if (f === "complete" && !i.complete) return false; if (f === "incomplete" && !(i.fiche && !i.complete)) return false;
+    if (f === "nofiche" && i.fiche) return false; if (f === "nophoto" && i.photo) return false; if (f === "nophoto-fiche" && !(i.fiche && !i.photo)) return false;
+    if (f === "draft" && i.status !== "draft") return false; if (f === "published" && i.status !== "published") return false; if (f === "archived" && i.status !== "archived") return false;
+    if (f === "toverify" && !(i.fiche && (i.ver === "toverify" || i.ver === "unverified"))) return false; if (f === "stale" && !i.stale) return false;
+    if (S.q) { var q = norm(S.q); if (!q.split(/\s+/).every(function (t) { return p.hay.indexOf(t) >= 0; })) return false; }
+    return true;
+  }
+  function sorted(rows) {
+    var s = S.sort, cmp = {
+      name: function (a, b) { return a.p.name.localeCompare(b.p.name, "fr"); },
+      cat: function (a, b) { return a.p.kind.localeCompare(b.p.kind) || a.p.name.localeCompare(b.p.name, "fr"); },
+      arr: function (a, b) { return a.p.arr - b.p.arr || a.p.name.localeCompare(b.p.name, "fr"); },
+      mod: function (a, b) { return ((META[b.p.k] || {}).updated_at || "") > ((META[a.p.k] || {}).updated_at || "") ? 1 : -1; },
+      ver: function (a, b) { return String((a.i.d || {}).verified || "9") < String((b.i.d || {}).verified || "9") ? -1 : 1; },
+      pct: function (a, b) { return a.i.pct - b.i.pct; }
+    }[s]; return rows.sort(cmp);
+  }
+  function list(c) {
+    var rows = []; PLACES.forEach(function (p) { var i = info(p); if (match(p, i)) rows.push({ p: p, i: i }); });
+    sorted(rows); var pages = Math.max(1, Math.ceil(rows.length / PER)); if (S.page >= pages) S.page = pages - 1;
+    var slice = rows.slice(S.page * PER, S.page * PER + PER);
+    var title = S.cat === "all" ? "Tous les lieux" : { r: "Restaurants", m: "Monuments & musées", h: "Hôtels", sa: "Sorties", b: "Boutiques" }[S.cat];
+    c.innerHTML = '<h2 class="t">' + title + '</h2><p class="sub">Paris · ' + rows.length + ' lieu(x)</p>' +
+      '<div class="tools"><input id="lq" style="max-width:300px" type="search" placeholder="Filtrer par nom, quartier, adresse…" value="' + esc(S.q) + '">' +
+      '<select id="lf">' + FILTERS.map(function (x) { return '<option value="' + x[0] + '"' + (S.f === x[0] ? " selected" : "") + '>' + x[1] + '</option>'; }).join("") + '</select>' +
+      '<select id="ls">' + SORTS.map(function (x) { return '<option value="' + x[0] + '"' + (S.sort === x[0] ? " selected" : "") + '>Tri : ' + x[1] + '</option>'; }).join("") + '</select></div>' +
+      '<table><thead><tr><th></th><th>Lieu</th><th>Catégorie</th><th>Arr.</th><th>Fiche</th><th>Photo</th><th>Vérification</th><th>Actions</th></tr></thead><tbody>' +
+      slice.map(function (r) {
+        var p = r.p, i = r.i, st = STAT[i.status], vr = VER[i.ver], ph = i.photo ? rsrc(i.d.photo.src) : "";
+        return '<tr class="row"><td>' + (ph ? '<img class="thumb" loading="lazy" decoding="async" alt="" src="' + esc(ph) + '" onerror="this.outerHTML=\'<span class=&quot;thumb ph&quot;>photo</span>\'">' : '<span class="thumb ph">—</span>') + '</td>' +
+          '<td><span class="nm" data-e="' + esc(p.k) + '">' + esc(p.name) + '</span></td><td>' + CATS[p.kind] + '</td><td>' + ordn(p.arr) + '</td>' +
+          '<td>' + chip(st[0], st[1]) + (i.fiche ? ' <small style="color:var(--muted)">' + i.pct + ' %</small>' : '') + '</td>' +
+          '<td>' + (i.photo ? chip("Oui", "ok") : chip("Non", "bad")) + '</td>' +
+          '<td>' + (i.fiche ? chip(vr[0], vr[1]) + (i.d.verified ? ' <small style="color:var(--muted)">' + fmtDate(i.d.verified) + '</small>' : "") : "—") + '</td>' +
+          '<td><div class="acts"><button data-e="' + esc(p.k) + '">Modifier</button>' +
+          (i.fiche ? '<button data-pv="' + esc(p.k) + '">Aperçu</button><button data-ar="' + esc(p.k) + '">' + (i.status === "archived" ? "Restaurer" : "Archiver") + '</button><button class="bad" data-rm="' + esc(p.k) + '">Supprimer</button>' : "") + '</div></td></tr>';
+      }).join("") + '</tbody></table>' +
+      (rows.length ? "" : '<div class="panel" style="text-align:center;color:var(--muted)">Aucun lieu ne correspond.</div>') +
+      '<div class="pager"><button id="pp"' + (S.page ? "" : " disabled") + '>←</button><span>Page ' + (S.page + 1) + ' / ' + pages + '</span><button id="pn"' + (S.page < pages - 1 ? "" : " disabled") + '>→</button></div>';
+    var byK = {}; PLACES.forEach(function (p) { byK[p.k] = p; });
+    var t; $("lq").oninput = function () { clearTimeout(t); var v = this.value; t = setTimeout(function () { S.q = v; S.page = 0; list(c); var q = $("lq"); q.focus(); q.setSelectionRange(v.length, v.length); }, 180); };
+    $("lf").onchange = function () { S.f = this.value; S.page = 0; list(c); }; $("ls").onchange = function () { S.sort = this.value; S.page = 0; list(c); };
+    $("pp").onclick = function () { S.page--; list(c); window.scrollTo(0, 0); }; $("pn").onclick = function () { S.page++; list(c); window.scrollTo(0, 0); };
+    c.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.e]); }; });
+    c.querySelectorAll("[data-pv]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.pv], "prev"); }; });
+    c.querySelectorAll("[data-ar]").forEach(function (b) { b.onclick = function () { archive(byK[b.dataset.ar]); }; });
+    c.querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { remove(byK[b.dataset.rm]); }; });
+  }
+  function verif(c) {
+    var rows = [];
+    PLACES.forEach(function (p) { var i = info(p); if (i.fiche && (i.ver !== "verified" || i.stale)) rows.push({ p: p, i: i }); });
+    rows.sort(function (a, b) { return String((a.i.d.verified) || "").localeCompare(String(b.i.d.verified || "")); });
+    c.innerHTML = '<h2 class="t">Vérifications</h2><p class="sub">Fiches dont les informations doivent être contrôlées. Une date n\'est jamais mise à jour automatiquement : c\'est toi qui valides.</p>' +
+      (rows.length ? '<table><thead><tr><th></th><th>Lieu</th><th>Statut</th><th>Dernière vérification</th><th>À contrôler</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
+        var vr = VER[r.i.ver], todo = arr(r.i.d.todo);
+        return '<tr class="row"><td></td><td><span class="nm" data-e="' + esc(r.p.k) + '">' + esc(r.p.name) + '</span></td><td>' + chip(r.i.stale ? "Ancienne" : vr[0], r.i.stale ? "warn" : vr[1]) + '</td><td>' + (r.i.d.verified ? fmtDate(r.i.d.verified) : "—") + '</td><td>' + (todo.length ? esc(todo.join(" · ")) : '<span style="color:var(--muted)">horaires, tarifs, adresse, site</span>') + '</td><td><button data-e="' + esc(r.p.k) + '">Ouvrir</button></td></tr>';
+      }).join("") + '</tbody></table>' : '<div class="panel" style="text-align:center;color:var(--muted)">Rien à vérifier pour l\'instant.</div>');
+    var byK = {}; PLACES.forEach(function (p) { byK[p.k] = p; });
+    c.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.e]); }; });
+  }
+
+  /* ---------- enregistrement ---------- */
+  async function upsert(k, data) {
+    if (saving) throw new Error("Un enregistrement est déjà en cours.");
+    saving = true;
+    try {
+      var cur = await (await sb("/rest/v1/place_details?key=eq." + encodeURIComponent(k) + "&select=data,updated_at")).json();
+      var remote = cur[0] ? cur[0].updated_at : null, mine = META[k] ? META[k].updated_at : null;
+      if (remote !== mine) { var er = new Error("Cette fiche a été modifiée ailleurs entre-temps. Recharge la page pour récupérer la dernière version."); throw er; }
+      if (cur[0] && histOK) { try { await sb("/rest/v1/place_history", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify({ key: k, data: cur[0].data }) }); } catch (e) { if (e.status === 404 || /place_history/.test(e.message)) histOK = false; } }
+      var now = new Date().toISOString();
+      await sb("/rest/v1/place_details", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify([{ key: k, data: data, updated_at: now }]) });
+      META[k] = { updated_at: now };
+    } finally { saving = false; }
+  }
+  async function archive(p) {
+    var d = Object.assign({}, DET[p.k]); if (d.archived) delete d.archived; else d.archived = true;
+    try { await upsert(p.k, d); DET[p.k] = d; toast(d.archived ? "Fiche archivée (réversible)." : "Fiche restaurée."); render(); } catch (e) { toast("Échec : " + e.message, true); }
+  }
+  async function remove(p) {
+    if (!confirm("Supprimer la fiche de « " + p.name + " » ?\n\nLe lieu reste dans la liste mais sans fiche. L'archivage est réversible, la suppression non (sauf via l'historique).")) return;
+    try { await upsert(p.k, { _deleted: true }); delete DET[p.k]; toast("Fiche supprimée."); render(); } catch (e) { toast("Échec : " + e.message, true); }
+  }
+
+  /* ---------- éditeur ---------- */
+  function openEdit(p, tab) { if (!p) return; photoBlob = null; histRows = null; go("edit", { cur: p, tab: tab || "info" }); }
+  function L(v) { return arr(v).join("\n"); }
+  function fld(id, label, html, hint) { return '<label for="' + id + '">' + label + (hint ? ' <small>' + hint + '</small>' : '') + '</label>' + html; }
+  function ta(id, v, h) { return '<textarea id="' + id + '"' + (h ? ' style="min-height:' + h + 'px"' : '') + '>' + esc(v) + '</textarea>'; }
+  function tx(id, v, ph, type) { return '<input type="' + (type || "text") + '" id="' + id + '" value="' + esc(v) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; }
+  var TABS = [["info", "Informations"], ["prat", "Informations pratiques"], ["photo", "Photographies"], ["liens", "Liens"], ["prev", "Aperçu"], ["hist", "Historique"]];
+  function editor(c) {
+    var p = S.cur, d = DET[p.k] || {}, i = info(p), st = STAT[i.status];
+    c.innerHTML = '<div id="edbar"><button class="ghost" id="eBack">← Retour</button><div class="ttl"><h2>' + esc(p.name) + ' <span id="dd" class="dirtydot hidden">●</span></h2><small>' + CATS[p.kind] + ' · ' + ordn(p.arr) + ' · ' + esc(p.q) + ' · dernière modification : ' + (META[p.k] ? ago(META[p.k].updated_at) : "—") + '</small></div>' +
+      chip(st[0], st[1]) + ' <span class="chip mut" id="pct">Complétude ' + i.pct + ' %</span>' +
+      '<button id="eSave" class="pri">Enregistrer</button></div>' +
+      '<div class="tabs">' + TABS.map(function (t) { return '<button class="tab' + (S.tab === t[0] ? " on" : "") + '" data-t="' + t[0] + '">' + t[1] + '</button>'; }).join("") + '</div><div id="pane"></div>';
+    $("eBack").onclick = function () { go("list"); }; $("eSave").onclick = save;
+    c.querySelectorAll(".tab").forEach(function (b) { b.onclick = function () { collect(); S.tab = b.dataset.t; editor(c); if (dirty) $("dd").classList.remove("hidden"); }; });
+    pane(); if (dirty) $("dd").classList.remove("hidden");
+  }
+  var FORM = {};
+  function val(id, def) { var e = $(id); return e ? e.value : def; }
+  function collect() { // mémorise les champs affichés dans FORM pour ne rien perdre en changeant d'onglet
+    var p = S.cur; if (!p) return;
+    FORM[p.k] = FORM[p.k] || {};
+    document.querySelectorAll("#pane [data-f]").forEach(function (e) { FORM[p.k][e.dataset.f] = e.value; });
+  }
+  function fv(f, d, def) { var F = FORM[S.cur.k]; return F && f in F ? F[f] : def; }
+  function pane() {
+    var p = S.cur, d = DET[p.k] || {}, k = p.kind, h = d.hours || {}, pr = d.price || {}, ac = d.access || {}, ph = d.photo || {}, e = $("pane");
+    function F(f, def) { return fv(f, d, def); }
+    function A(id, def, hint, label, hgt) { return fld("f_" + id, label, '<textarea data-f="' + id + '" id="f_' + id + '"' + (hgt ? ' style="min-height:' + hgt + 'px"' : "") + '>' + esc(F(id, def)) + '</textarea>', hint); }
+    function T(id, def, label, ph, type, hint) { return fld("f_" + id, label, '<input data-f="' + id + '" type="' + (type || "text") + '" id="f_' + id + '" value="' + esc(F(id, def)) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + '>', hint); }
+    var t = S.tab, o = "";
+    if (t === "info") {
+      o = '<div class="panel">' + A("summary", d.summary, "(utile, sans texte touristique générique)", "Description courte") + T("address", d.address, "Adresse complète") +
+        '<div class="g2"><div>' + fld("f_q", "Arrondissement", '<input disabled value="' + ordn(p.arr) + ' arrondissement">') + '</div><div>' + fld("f_q2", "Quartier", '<input disabled value="' + esc(p.q) + '">') + '</div></div>' +
+        '<div class="g2"><div>' + fld("f_status", "Statut de publication", '<select data-f="status" id="f_status"><option value="published"' + (F("status", d.status || "published") !== "draft" ? " selected" : "") + '>Publiée</option><option value="draft"' + (F("status", d.status) === "draft" ? " selected" : "") + '>Brouillon (non affichée au public)</option></select>') + '</div><div></div></div></div>' +
+        '<div class="panel" style="margin-top:12px"><h3>Vérification</h3><div class="g2"><div>' + fld("f_verification", "Statut de vérification", '<select data-f="verification" id="f_verification">' + [["unverified", "Non vérifiée"], ["toverify", "À vérifier"], ["verified", "Vérifiée"]].map(function (x) { return '<option value="' + x[0] + '"' + (F("verification", d.verification || (d.verified ? "verified" : "unverified")) === x[0] ? " selected" : "") + '>' + x[1] + '</option>'; }).join("") + '</select>') + '</div><div>' + T("verified", d.verified, "Date de dernière vérification", "", "date", "(à saisir toi-même)") + '</div></div>' +
+        A("sources", L(d.sources), "(1 ligne = 1 lien officiel)", "Sources officielles", 70) + A("todo", L(d.todo), "(non affiché au public)", "Informations à contrôler", 60) + '</div>' +
+        '<p class="miss" id="missing"></p>';
+    } else if (t === "prat") {
+      o = '<div class="panel"><div class="g2"><div>' + A("hours", L(h.lines), "(1 ligne = 1 puce)", k === "m" ? "Horaires de visite" : "Horaires officiels") + '</div><div>' + A("hoursNote", h.note, "", "Informations complémentaires sur les horaires") + '</div></div>' +
+        '<div class="g2"><div>' + A("price", L(pr.lines), "(1 ligne = 1 puce)", k === "r" ? "Gamme de prix" : "Tarifs") + '</div><div>' + (k === "m" || k === "a" || k === "s" ? A("free", L(pr.free), "(1 ligne = 1 puce)", "Gratuité") : A("priceNote", pr.note, "", "Note sur les tarifs")) + '</div></div>' +
+        (k === "m" || k === "a" || k === "s" ? T("priceNote", pr.note, "Note sur les tarifs") : "") +
+        A("metro", L(d.metro), "(1 ligne = 1 élément ; 1re ligne = phrase d'intro si plusieurs)", "Accès métro et transports") +
+        '<div class="g2"><div>' + fld("f_level", "Accessibilité", '<select data-f="level" id="f_level"><option value="">— non renseignée —</option>' + ["Totale", "Partielle", "Limitée"].map(function (x) { return '<option' + (F("level", ac.level) === x ? " selected" : "") + '>' + x + '</option>'; }).join("") + '</select>') + '</div><div>' + A("accNote", ac.note, "", "Détail de l'accessibilité", 44) + '</div></div>' +
+        A("tip", d.tip, "", "Conseil pratique OCHANE") + '</div>';
+    } else if (t === "photo") {
+      o = '<div class="panel"><div id="photoBox"></div><label for="f_file">Ajouter / remplacer la photo principale</label><input type="file" id="f_file" accept="image/jpeg,image/png,image/webp"><div class="miss" style="color:var(--muted)">Redimensionnée à 1600 px max, enregistrée en JPEG. L\'ancienne photo n\'est pas supprimée du stockage.</div>' +
+        '<div class="g2"><div>' + T("alt", ph.alt, "Texte alternatif") + '</div><div>' + T("credit", ph.credit, "Auteur *") + '</div><div>' + T("license", ph.license, "Licence *", "CC BY-SA 4.0") + '</div><div>' + T("licenseUrl", ph.licenseUrl, "Lien de la licence", "", "url") + '</div></div>' + T("source", ph.source, "Page source (Wikimedia Commons)", "", "url") +
+        '<button id="rmPhoto" class="bad" style="margin-top:12px">Retirer la photo de la fiche</button><p class="miss" style="color:var(--muted)">Galerie multi-photos, réorganisation et médiathèque : phase suivante.</p></div>';
+    } else if (t === "liens") {
+      o = '<div class="panel">' + T("site", d.site, "Site officiel", "https://…", "url") +
+        (k === "m" || k === "a" || k === "s" ? '<div class="g2"><div>' + T("tickets", d.tickets, "Billetterie officielle", "https://… (vide = pas de bouton)", "url") + '</div><div>' + T("ticketsLabel", d.ticketsLabel, "Libellé du bouton billets", "Billets") + '</div></div>' : "") +
+        (k === "r" || k === "h" ? T("booking", d.booking, "Réservation", "https://…", "url", "(affichage public à venir)") : "") + (k === "r" ? T("menu", d.menu, "Menu", "https://…", "url", "(affichage public à venir)") : "") + '</div>';
+    } else if (t === "prev") {
+      o = '<div style="display:flex;gap:8px;margin-bottom:12px"><button data-w="desk"' + (S.pvw === "desk" ? ' class="pri"' : "") + '>Ordinateur</button><button data-w="mob"' + (S.pvw === "mob" ? ' class="pri"' : "") + '>Mobile</button></div><div id="pv" class="pv" style="width:' + (S.pvw === "mob" ? "390px" : "min(560px,100%)") + ';max-width:100%"></div><p class="miss" style="color:var(--muted)">Aperçu des données telles qu\'elles seront affichées ; la mise en page finale est celle du site public.</p>';
+    } else if (t === "hist") {
+      o = '<div class="panel" id="histBox">Chargement…</div>';
+    }
+    e.innerHTML = o;
+    e.querySelectorAll("[data-f]").forEach(function (x) { x.addEventListener("input", function () { markDirty(); }); x.addEventListener("change", function () { markDirty(); }); });
+    if (t === "info") missing();
+    if (t === "photo") { showPhoto(); $("f_file").onchange = onFile; $("rmPhoto").onclick = function () { photoBlob = null; ["alt", "credit", "license", "licenseUrl", "source"].forEach(function (f) { FORM[p.k] = FORM[p.k] || {}; FORM[p.k][f] = ""; var el = $("f_" + f); if (el) el.value = ""; }); FORM[p.k]._rmphoto = "1"; markDirty(); showPhoto(true); }; }
+    if (t === "prev") { collect(); $("pv").innerHTML = previewHtml(buildEntry(true), p); e.querySelectorAll("[data-w]").forEach(function (b) { b.onclick = function () { S.pvw = b.dataset.w; pane(); }; }); }
+    if (t === "hist") loadHist();
+  }
+  function markDirty() { dirty = true; var d = $("dd"); if (d) d.classList.remove("hidden"); }
+  function missing() { var m = info(S.cur).missing; var el = $("missing"); if (el) el.textContent = m.length ? "Manquant : " + m.join(", ") : "Aucune information manquante."; }
+
+  function buildEntry(forPreview) {
+    var p = S.cur, old = DET[p.k] || {}, F = FORM[p.k] || {}, e = Object.assign({}, old);
+    function g(f, def) { return f in F ? F[f] : def; }
+    function lines(s) { return String(s).split("\n").map(function (x) { return x.trim(); }).filter(Boolean); }
+    function setS(name, v) { v = String(v == null ? "" : v).trim(); if (v) e[name] = v; else delete e[name]; }
+    setS("summary", g("summary", old.summary)); setS("address", g("address", old.address)); setS("verified", g("verified", old.verified));
+    if ("status" in F) { if (F.status === "draft") e.status = "draft"; else delete e.status; }
+    if ("verification" in F && F.verification !== (old.verification || (old.verified ? "verified" : "unverified"))) e.verification = F.verification;
+    var so = lines(g("sources", L(old.sources))), td = lines(g("todo", L(old.todo))); if (so.length) e.sources = so; else delete e.sources; if (td.length) e.todo = td; else delete e.todo;
+    var h = lines(g("hours", L((old.hours || {}).lines))), hn = String(g("hoursNote", (old.hours || {}).note || "")).trim();
+    if (h.length || hn) { e.hours = {}; if (h.length) e.hours.lines = h; if (hn) e.hours.note = hn; } else delete e.hours;
+    var pl = lines(g("price", L((old.price || {}).lines))), pf = lines(g("free", L((old.price || {}).free))), pn = String(g("priceNote", (old.price || {}).note || "")).trim();
+    if (pl.length || pf.length || pn) { e.price = {}; if (pl.length) e.price.lines = pl; if (pf.length) e.price.free = pf; if (pn) e.price.note = pn; } else delete e.price;
+    var m = lines(g("metro", L(old.metro))); if (m.length === 1) e.metro = m[0]; else if (m.length > 1) e.metro = m; else delete e.metro;
+    var lv = g("level", (old.access || {}).level || ""), an = String(g("accNote", (old.access || {}).note || "")).trim();
+    if (lv || an) { e.access = {}; if (lv) e.access.level = lv; if (an) e.access.note = an; } else delete e.access;
+    setS("tip", g("tip", old.tip)); setS("site", g("site", old.site)); setS("tickets", g("tickets", old.tickets)); setS("ticketsLabel", g("ticketsLabel", old.ticketsLabel)); setS("booking", g("booking", old.booking)); setS("menu", g("menu", old.menu));
+    var op = old.photo || {};
+    if (F._rmphoto && !photoBlob) delete e.photo;
+    else if (photoBlob || op.src) {
+      var ph = { src: op.src || "", alt: String(g("alt", op.alt || "")).trim(), credit: String(g("credit", op.credit || "")).trim(), license: String(g("license", op.license || "")).trim() };
+      var lu = String(g("licenseUrl", op.licenseUrl || "")).trim(), so2 = String(g("source", op.source || "")).trim();
+      if (lu) ph.licenseUrl = lu; if (so2) ph.source = so2; if (op.modified) ph.modified = op.modified; else if (photoBlob) ph.modified = "image redimensionnée et recadrée";
+      e.photo = ph;
+    }
+    return e;
+  }
+  function badUrl(u) { return u && !/^https:\/\/[^\s]+$/i.test(u); }
+  async function save() {
+    collect(); var p = S.cur, e = buildEntry(), errs = [];
+    ["site", "tickets", "booking", "menu"].forEach(function (f) { if (badUrl(e[f])) errs.push("Lien invalide (https requis) : " + f); });
+    if (e.photo && (badUrl(e.photo.licenseUrl) || badUrl(e.photo.source))) errs.push("Photo : liens de licence/source invalides (https requis).");
+    if (e.photo && (!e.photo.credit || !e.photo.license)) errs.push("Photo : l'auteur et la licence sont obligatoires.");
+    if (e.photo && !e.photo.alt) errs.push("Photo : texte alternatif obligatoire.");
+    if (e.tickets && !e.site) errs.push("Billets : renseigne aussi le site officiel.");
+    if (!Object.keys(e).length) errs.push("Fiche vide.");
+    if (errs.length) { toast(errs.join(" "), true); return; }
+    var btn = $("eSave"); btn.disabled = true; btn.textContent = "Enregistrement…";
+    try {
+      if (photoBlob) {
+        var nm = slug(p.name) + "-" + Date.now().toString(36) + ".jpg";
+        await sb("/storage/v1/object/place-photos/" + nm, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: photoBlob });
+        e.photo.src = CFG.supabaseUrl + "/storage/v1/object/public/place-photos/" + nm;
+      }
+      await upsert(p.k, e);
+      DET[p.k] = e; photoBlob = null; delete FORM[p.k]; dirty = false;
+      p.hay = norm(p.name + " " + p.q + " " + ordn(p.arr) + " arrondissement " + p.metro + " " + (e.address || ""));
+      toast("Enregistré. Visible sur ochane.com."); editor($("content")); counts();
+    } catch (x) { toast("Échec de l'enregistrement : " + x.message + " Tes modifications sont conservées dans le formulaire.", true); btn.disabled = false; btn.textContent = "Enregistrer"; }
+  }
+  async function showPhoto(removed) {
+    var box = $("photoBox"); if (!box) return; var d = DET[S.cur.k] || {}, url = null;
+    if (photoBlob) url = URL.createObjectURL(photoBlob); else if (!removed && d.photo && d.photo.src && !(FORM[S.cur.k] || {})._rmphoto) url = rsrc(d.photo.src);
+    box.innerHTML = url ? '<img id="photoPrev" alt="" src="' + esc(url) + '">' : '<span style="color:var(--muted)">Aucune photo.</span>';
+  }
+  function onFile() {
+    var f = $("f_file").files[0]; if (!f) return; var img = new Image();
+    img.onload = function () {
+      var W = Math.min(1600, img.naturalWidth), H = Math.round(img.naturalHeight * W / img.naturalWidth), c = document.createElement("canvas"); c.width = W; c.height = H;
+      var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H); x.drawImage(img, 0, 0, W, H);
+      c.toBlob(function (b) { photoBlob = b; var F = FORM[S.cur.k] = FORM[S.cur.k] || {}; delete F._rmphoto; markDirty(); showPhoto(); toast("Photo prête : " + W + " × " + H + " px, " + Math.round(b.size / 1024) + " Ko. Renseigne auteur et licence."); }, "image/jpeg", 0.82);
+    };
+    img.onerror = function () { toast("Image illisible.", true); }; img.src = URL.createObjectURL(f);
+  }
+
+  /* ---------- aperçu & historique ---------- */
+  function ul(a) { a = arr(a); return a.length ? "<ul>" + a.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : ""; }
+  function previewHtml(d, p) {
+    var o = '<div style="font-size:.78rem;font-weight:700;color:var(--gold);text-transform:uppercase">' + CATS[p.kind] + ' · ' + ordn(p.arr) + ' arrondissement</div><h4>' + esc(p.name) + '</h4>';
+    if (d.status === "draft") o += '<p class="chip warn">Brouillon : non affichée au public</p>';
+    if (d.photo && d.photo.src && d.photo.credit && d.photo.license) o += '<figure><img alt="' + esc(d.photo.alt) + '" src="' + esc(photoBlob ? URL.createObjectURL(photoBlob) : rsrc(d.photo.src)) + '"><figcaption style="font-size:.74rem;color:var(--muted)">Photo : ' + esc(d.photo.credit) + ' — ' + esc(d.photo.license) + '</figcaption></figure>';
+    if (d.summary) o += '<p>' + esc(d.summary) + '</p>';
+    function fx(t, b) { return b ? '<div class="fx"><h5>' + t + '</h5>' + b + '</div>' : ""; }
+    o += fx("Adresse", d.address ? "<div>" + esc(d.address) + "</div>" : "") + fx("Métro", Array.isArray(d.metro) ? "<div>" + esc(d.metro[0]) + "</div>" + ul(d.metro.slice(1)) : (d.metro ? "<div>" + esc(d.metro) + "</div>" : ""));
+    o += fx("Horaires officiels", d.hours ? ul(d.hours.lines) + (d.hours.note ? "<small>" + esc(d.hours.note) + "</small>" : "") : "") + fx("Tarif indicatif", d.price ? ul(d.price.lines) + (arr(d.price.free).length ? "<b style='color:var(--ok)'>Gratuité</b>" + ul(d.price.free) : "") + (d.price.note ? "<small>" + esc(d.price.note) + "</small>" : "") : "");
+    o += fx("Accessibilité", d.access ? (d.access.level ? "<b>" + esc(d.access.level) + "</b> " : "") + esc(d.access.note || "") : "") + fx("Conseil OCHANE", d.tip ? "<div>" + esc(d.tip) + "</div>" : "");
+    var b = []; if (d.tickets) b.push("<button class='pri'>" + esc(d.ticketsLabel || "Billets") + "</button>"); if (d.site) b.push("<button>Site officiel</button>");
+    return o + (b.length ? '<div style="display:flex;gap:8px;margin-top:12px">' + b.join("") + "</div>" : "") + (d.verified ? '<p style="font-size:.78rem;color:var(--muted)">Informations vérifiées le ' + fmtDate(d.verified) + ' sur les sites officiels.</p>' : "");
+  }
+  async function loadHist() {
+    var box = $("histBox"), p = S.cur;
+    try {
+      var rows = await (await sb("/rest/v1/place_history?key=eq." + encodeURIComponent(p.k) + "&select=id,data,saved_at&order=saved_at.desc&limit=20")).json(); histRows = rows;
+      box.innerHTML = rows.length ? '<h3>Versions précédentes</h3>' + rows.map(function (r, n) { return '<div class="recent" style="cursor:default"><span>' + new Date(r.saved_at).toLocaleString("fr-FR") + '</span><button data-r="' + n + '">Restaurer dans le formulaire</button></div>'; }).join("") + '<p class="miss" style="color:var(--muted)">La restauration remplit le formulaire ; rien n\'est écrit tant que tu n\'as pas enregistré.</p>' : "Aucune version précédente pour l'instant : l'historique se remplit à chaque enregistrement.";
+      box.querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { var r = histRows[+b.dataset.r].data; DET[p.k] = r; delete FORM[p.k]; markDirty(); S.tab = "info"; editor($("content")); }; });
+    } catch (e) { histOK = false; box.innerHTML = 'Historique non activé. Exécute <code>admin/supabase-history.sql</code> dans Supabase (SQL Editor) pour l\'activer.'; }
+  }
+
+  /* ---------- démarrage ---------- */
+  async function start() {
+    try { $("login").classList.add("hidden"); await loadAll(); $("app").classList.remove("hidden"); $("who").textContent = SB.email || "Administrateur"; go("dash"); }
+    catch (e) { $("login").classList.remove("hidden"); $("loginMsg").textContent = "Chargement impossible : " + e.message; }
+  }
+  $("bLogin").onclick = async function () {
+    var em = $("em").value.trim(), pw = $("pw").value; if (!em || !pw) { $("loginMsg").textContent = "Renseigne l'email et le mot de passe."; return; }
+    $("loginMsg").textContent = "Connexion…";
+    try { await token({ grant_type: "password", email: em, password: pw }); SB.email = SB.email || em; await start(); } catch (e) { $("loginMsg").textContent = e.message; }
+  };
+  $("pw").addEventListener("keydown", function (ev) { if (ev.key === "Enter") $("bLogin").click(); });
+  $("bOut").onclick = function () { try { localStorage.removeItem("ochane-admin-sb"); } catch (e) { } location.reload(); };
+  $("burger").onclick = function () { $("side").classList.toggle("open"); };
+  document.querySelectorAll(".nav[data-v]").forEach(function (b) { b.onclick = function () { go(b.dataset.v, b.dataset.v === "list" ? { cat: b.dataset.cat, f: "all", q: "", page: 0 } : {}); }; });
+  $("bIncomp").onclick = function () { go("list", { cat: "all", f: "incomplete", q: "", page: 0 }); };
+  var gt; $("gq").addEventListener("input", function () { var v = this.value; clearTimeout(gt); gt = setTimeout(function () { if (S.view !== "list") go("list", { cat: "all", f: "all", q: v, page: 0 }); else { S.q = v; S.page = 0; list($("content")); } }, 200); });
+  function theme(m) { document.documentElement.setAttribute("data-theme", m); try { localStorage.setItem("ochane-admin-theme", m); } catch (e) { } }
+  var th = null; try { th = localStorage.getItem("ochane-admin-theme"); } catch (e) { } theme(th || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  $("bTheme").onclick = function () { theme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"); };
+  window.addEventListener("beforeunload", function (ev) { if (dirty) { ev.preventDefault(); ev.returnValue = ""; } });
+  if (!CFG.supabaseUrl || !CFG.supabaseKey) { $("loginMsg").textContent = "Supabase n'est pas configuré (data/ochane-config.js)."; $("bLogin").disabled = true; }
+  else { try { var ss = JSON.parse(localStorage.getItem("ochane-admin-sb") || "null"); if (ss && ss.refresh) { SB.refresh = ss.refresh; token({ grant_type: "refresh_token", refresh_token: ss.refresh }).then(start).catch(function () { $("loginMsg").textContent = "Session expirée : reconnecte-toi."; }); } } catch (e) { } }
+})();
+</script>
+</body>
+</html>
