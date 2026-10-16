@@ -117,6 +117,90 @@ tr.row:hover td { background:var(--soft); }
   tr.row td:nth-child(3), tr.row td:nth-child(4) { color:var(--muted); font-size:.85rem; }
   tr.row td:last-child { flex:1 1 100%; }
 }
+
+/* ===== habillage maquette ===== */
+:root { --serif: Georgia, "Times New Roman", serif; --blue:#2f6fed; --green:#12a36b; --orange:#f08a1c; --red:#e04b4b; --purple:#7a5af8; }
+#side { background:linear-gradient(180deg,#0b2a52 0%,#071a35 100%); padding:18px 12px 12px; }
+#side .logo { flex-direction:column; align-items:center; gap:2px; padding:4px 0 18px; font-family:var(--serif); font-weight:400; font-size:1.7rem; letter-spacing:.14em; }
+#side .logo small { font-family:-apple-system,sans-serif; font-size:.62rem; letter-spacing:.34em; color:var(--gold); display:flex; align-items:center; gap:8px; }
+#side .logo small:before, #side .logo small:after { content:""; width:28px; height:1px; background:var(--gold); }
+.nav { gap:12px; justify-content:flex-start; padding:10px 12px; font-size:.93rem; }
+.nav svg { width:19px; height:19px; flex:none; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.nav .n, .nav .soon { margin-left:auto; }
+.nav.on { background:linear-gradient(90deg,#c8962e,#b8841f); color:#fff; box-shadow:none; font-weight:650; }
+.sep { height:1px; background:rgba(255,255,255,.12); margin:8px 4px; }
+.cityrow { display:flex; align-items:center; gap:10px; padding:10px 12px; border-top:1px solid rgba(255,255,255,.12); margin-top:6px; color:#fff; }
+.cityrow svg { width:18px; height:18px; stroke:var(--gold); fill:none; stroke-width:1.7; }
+.user { display:flex; align-items:center; gap:10px; padding:10px 10px 6px; border-top:1px solid rgba(255,255,255,.12); }
+.av { width:34px; height:34px; border-radius:50%; background:var(--gold); color:#fff; display:grid; place-items:center; font-weight:700; flex:none; }
+.user b { display:block; font-size:.88rem; color:#fff; } .user small { color:#9fb2cf; font-size:.74rem; }
+#top { padding:10px 22px; gap:12px; }
+#top .search { max-width:none; position:relative; }
+.sbox { position:relative; flex:1; max-width:520px; }
+.sbox svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:17px; height:17px; stroke:var(--muted); fill:none; stroke-width:1.8; }
+.sbox input { padding-left:38px; background:var(--soft); border-color:transparent; border-radius:10px; }
+.pill { display:flex; align-items:center; gap:7px; border:1px solid var(--line); background:var(--panel); border-radius:10px; padding:7px 12px; font-weight:600; font-size:.88rem; }
+.pill svg { width:16px; height:16px; stroke:var(--gold); fill:none; stroke-width:2; }
+.tsw { position:relative; width:58px; height:28px; border-radius:99px; background:var(--soft); border:1px solid var(--line); padding:0; flex:none; }
+.tsw:before { content:""; position:absolute; top:2px; left:3px; width:22px; height:22px; border-radius:50%; background:var(--gold); transition:transform .2s; }
+:root[data-theme="dark"] .tsw:before { transform:translateX(29px); }
+.tsw span { position:absolute; top:5px; font-size:.8rem; line-height:1; } .tsw .s { left:8px; } .tsw .m { right:7px; }
+#bAdd { background:linear-gradient(180deg,#d6a43a,#c08a22); border-color:#c08a22; color:#fff; font-weight:700; display:flex; align-items:center; gap:6px; padding:9px 16px; border-radius:10px; }
+#bAdd:disabled { opacity:1; cursor:pointer; }
+.ib { position:relative; width:38px; height:38px; padding:0; display:grid; place-items:center; border-radius:50%; }
+.ib svg { width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.ib .dot { position:absolute; top:6px; right:7px; width:9px; height:9px; background:var(--red); border-radius:50%; border:2px solid var(--panel); }
+#content { max-width:1500px; padding:0 24px 60px; }
+.hero { margin:0 -24px 20px; padding:30px 28px 26px; background:linear-gradient(100deg,var(--panel) 0%,var(--panel) 38%,#e8edf6 100%); border-bottom:1px solid var(--line); position:relative; overflow:hidden; min-height:118px; }
+:root[data-theme="dark"] .hero { background:linear-gradient(100deg,var(--panel) 0%,#14304f 100%); }
+.hero h2 { font-family:var(--serif); font-size:2rem; margin:0; font-weight:700; letter-spacing:-.01em; }
+.hero p { margin:4px 0 0; color:var(--muted); font-size:1.02rem; }
+.hero svg { position:absolute; right:0; bottom:0; height:100%; width:min(560px,60%); opacity:.55; }
+.cards.six { grid-template-columns:repeat(6,minmax(0,1fr)); gap:14px; }
+.stat { position:relative; display:flex; flex-direction:column; gap:6px; padding:16px; border-radius:14px; text-align:left; min-height:150px; }
+.stat .ico { width:46px; height:46px; border-radius:12px; display:grid; place-items:center; }
+.stat .ico svg { width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.stat b { font-size:2rem; line-height:1; margin-top:6px; }
+.stat span { font-size:.85rem; color:var(--muted); }
+.stat .ex { margin-top:auto; font-size:.8rem; font-weight:700; display:flex; align-items:center; gap:8px; }
+.stat .mini { flex:1; height:8px; background:rgba(0,0,0,.07); border-radius:99px; overflow:hidden; } .stat .mini i { display:block; height:100%; border-radius:99px; }
+.t-blue { background:linear-gradient(160deg,#eef4ff,#fff); } .t-blue .ico { background:#dce8ff; color:var(--blue); }
+.t-green { background:linear-gradient(160deg,#e9f9f1,#fff); } .t-green .ico { background:#cdf1e0; color:var(--green); } .t-green .ex { color:var(--green); }
+.t-orange { background:linear-gradient(160deg,#fff3e4,#fff); } .t-orange .ico { background:#ffe2bf; color:var(--orange); } .t-orange .ex { color:var(--orange); } .t-orange .mini i { background:var(--orange); }
+.t-red { background:linear-gradient(160deg,#fdeeee,#fff); } .t-red .ico { background:#fbd5d5; color:var(--red); } .t-red .ex { color:var(--red); } .t-red .mini i { background:var(--red); }
+.t-purple { background:linear-gradient(160deg,#f1edff,#fff); } .t-purple .ico { background:#e0d8ff; color:var(--purple); } .t-purple .ex { color:var(--purple); } .t-purple .mini i { background:var(--purple); }
+.t-blue2 { background:linear-gradient(160deg,#eaf3ff,#fff); } .t-blue2 .ico { background:#d3e6ff; color:#1d6fd0; } .t-blue2 .ex { color:#1d6fd0; }
+:root[data-theme="dark"] .stat { background:var(--panel); }
+.row3 { display:grid; grid-template-columns:1.15fr 1.1fr .85fr; gap:14px; margin-top:16px; }
+.ph3 { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.ph3 h3 { margin:0; font-size:1rem; letter-spacing:0; text-transform:none; color:var(--ink); display:flex; align-items:center; gap:8px; }
+.ph3 h3 svg { width:18px; height:18px; stroke:var(--gold); fill:none; stroke-width:1.9; }
+.ph3 a { color:var(--blue); font-size:.8rem; cursor:pointer; background:none; border:0; padding:0; }
+.todo { align-items:center; gap:12px; padding:11px 2px; }
+.todo .bd { min-width:42px; text-align:center; font-weight:800; border-radius:9px; padding:5px 8px; }
+.todo .lb { flex:1; } .todo .ch { color:var(--muted); }
+.bd.r { background:#fde6e6; color:var(--red); } .bd.p { background:#ece7ff; color:var(--purple); } .bd.o { background:#ffecd2; color:#c76b00; } .bd.b { background:#e0ebff; color:var(--blue); } .bd.g { background:#e0f5ec; color:var(--green); }
+.rc { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+.rc:last-child { border-bottom:0; }
+.rc .thumb { width:52px; height:40px; border-radius:7px; }
+.rc div { flex:1; min-width:0; } .rc b { display:block; font-size:.92rem; } .rc small { color:var(--muted); } .rc em { font-style:normal; color:var(--muted); font-size:.78rem; white-space:nowrap; }
+.ring { position:relative; width:150px; height:150px; flex:none; }
+.ring svg { transform:rotate(-90deg); } .ring b { position:absolute; inset:0; display:grid; place-items:center; font-size:1.7rem; }
+.msgbox { margin-top:14px; background:#e8f1ff; color:#1f4f8f; border-radius:10px; padding:10px 14px; font-size:.84rem; }
+:root[data-theme="dark"] .msgbox { background:#12304f; color:#b9d4f5; }
+.tag { display:inline-block; font-size:.76rem; font-weight:650; padding:3px 10px; border-radius:7px; }
+.tag.m { background:#e0ebff; color:#2457c5; } .tag.r { background:#fde6e6; color:#c23a3a; } .tag.h { background:#ece7ff; color:#6240d6; } .tag.b { background:#ffecd2; color:#b86100; } .tag.s, .tag.a { background:#dcf6ee; color:#0f8a5f; }
+.chip.ok:before { content:"✓ "; }
+.chip { font-weight:650; border-radius:8px; padding:3px 10px; }
+.chip.ok { background:#e0f5ec; border-color:transparent; } .chip.warn { background:#ffecd2; border-color:transparent; } .chip.bad { background:#fde6e6; border-color:transparent; } .chip.mut { background:var(--soft); border-color:transparent; }
+.icb { width:32px; height:32px; padding:0; display:inline-grid; place-items:center; border-radius:8px; border-color:transparent; background:transparent; color:var(--muted); }
+.icb:hover { background:var(--soft); color:var(--ink); } .icb.bad:hover { color:var(--bad); } .icb svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.tpanel { padding:16px; margin-top:16px; }
+.tpanel .tools { margin-bottom:10px; }
+table { border-radius:12px; }
+.okx { font-weight:650; color:var(--green); } .nox { font-weight:650; color:var(--red); }
+@media (max-width:1250px) { .cards.six { grid-template-columns:repeat(3,minmax(0,1fr)); } .row3 { grid-template-columns:1fr 1fr; } }
+@media (max-width:900px) { .cards.six { grid-template-columns:repeat(2,minmax(0,1fr)); } .row3 { grid-template-columns:1fr; } .hero { margin:0 -14px 16px; padding:22px 18px; } .hero h2 { font-size:1.5rem; } .hero svg { opacity:.25; } .pill, .tsw { display:none; } .sbox { max-width:none; } .icb { width:36px; height:36px; } #bAdd { font-size:0; padding:10px; } #bAdd svg { width:18px; height:18px; } .sbox { min-width:0; flex:1 1 auto; } #top { padding:10px 12px; gap:8px; } #av2 { display:none; } }
 </style>
 </head>
 <body>
@@ -135,31 +219,34 @@ tr.row:hover td { background:var(--soft); }
 
 <div id="app" class="hidden">
   <aside id="side">
-    <div class="logo"><i></i>OCHANE</div>
-    <button class="nav on" data-v="dash">Tableau de bord</button>
-    <button class="nav" data-v="list" data-cat="all">Tous les lieux <span class="n" id="n-all"></span></button>
-    <button class="nav" data-v="list" data-cat="r">Restaurants <span class="n" id="n-r"></span></button>
-    <button class="nav" data-v="list" data-cat="m">Monuments <span class="n" id="n-m"></span></button>
-    <button class="nav" data-v="list" data-cat="h">Hôtels <span class="n" id="n-h"></span></button>
-    <button class="nav" data-v="list" data-cat="sa">Sorties <span class="n" id="n-sa"></span></button>
-    <button class="nav" data-v="list" data-cat="b">Boutiques <span class="n" id="n-b"></span></button>
-    <button class="nav" disabled>Agenda <span class="soon">bientôt</span></button>
-    <button class="nav" disabled>Parcours <span class="soon">bientôt</span></button>
-    <button class="nav" disabled>Médiathèque <span class="soon">bientôt</span></button>
-    <button class="nav" data-v="verif">Vérifications <span class="n" id="n-verif"></span></button>
-    <button class="nav" disabled>Paramètres <span class="soon">bientôt</span></button>
+    <div class="logo">OCHANE<small>PARIS</small></div>
+    <button class="nav on" data-v="dash" data-i="home">Tableau de bord</button>
+    <button class="nav" data-v="list" data-cat="all" data-i="pin">Tous les lieux <span class="n" id="n-all"></span></button>
+    <button class="nav" data-v="list" data-cat="r" data-i="fork">Restaurants <span class="n" id="n-r"></span></button>
+    <button class="nav" data-v="list" data-cat="m" data-i="bank">Monuments <span class="n" id="n-m"></span></button>
+    <button class="nav" data-v="list" data-cat="h" data-i="bed">Hôtels <span class="n" id="n-h"></span></button>
+    <button class="nav" data-v="list" data-cat="sa" data-i="glass">Sorties <span class="n" id="n-sa"></span></button>
+    <button class="nav" data-v="list" data-cat="b" data-i="bag">Boutiques <span class="n" id="n-b"></span></button>
+    <button class="nav" disabled data-i="cal">Agenda <span class="soon">bientôt</span></button>
+    <button class="nav" disabled data-i="map">Parcours <span class="soon">bientôt</span></button>
+    <div class="sep"></div>
+    <button class="nav" disabled data-i="img">Médiathèque <span class="soon">bientôt</span></button>
+    <button class="nav" data-v="verif" data-i="check">Vérifications <span class="n" id="n-verif"></span></button>
+    <button class="nav" disabled data-i="gear">Paramètres <span class="soon">bientôt</span></button>
     <div class="sp"></div>
-    <div class="who" id="who"></div>
-    <button class="nav" id="bOut">Déconnexion</button>
+    <div class="cityrow" id="cityrow"></div>
+    <div class="user"><span class="av" id="av">A</span><div><b id="who">Administrateur</b><small>Administrateur</small></div></div>
+    <button class="nav" id="bOut" data-i="out">Se déconnecter</button>
   </aside>
   <div id="main">
     <div id="top">
-      <button id="burger" aria-label="Menu">☰</button>
-      <input id="gq" class="search" type="search" placeholder="Rechercher un lieu, une adresse, un quartier…" autocomplete="off">
-      <span class="city">Paris ▾</span>
-      <button id="bIncomp">Fiches incomplètes</button>
-      <button id="bAdd" disabled title="Bientôt : les lieux sont encore dans index.html">+ Ajouter un lieu</button>
-      <button id="bTheme" aria-label="Thème">◐</button>
+      <button id="burger" class="ib" aria-label="Menu">☰</button>
+      <div class="sbox"><span id="sico"></span><input id="gq" type="search" placeholder="Rechercher un lieu, une adresse, un quartier…" autocomplete="off"></div>
+      <span class="pill" id="citypill"></span>
+      <button class="tsw" id="bTheme" aria-label="Thème clair / sombre"><span class="s">☀</span><span class="m">☾</span></button>
+      <button id="bAdd" title="Les lieux sont encore dans index.html : l'ajout viendra avec la migration vers Supabase"></button>
+      <button class="ib" id="bBell" title="Fiches à vérifier"></button>
+      <span class="av" id="av2" style="width:38px;height:38px">A</span>
     </div>
     <div id="content"></div>
   </div>
@@ -177,6 +264,8 @@ tr.row:hover td { background:var(--soft); }
   var S = { view: "dash", cat: "all", f: "all", q: "", sort: "name", page: 0, cur: null, tab: "info", pvw: "desk" };
   var photoBlob = null, histRows = null;
 
+  var ICON = {"home": "<path d=\"M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z\"/>", "pin": "<path d=\"M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/>", "fork": "<path d=\"M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10\"/>", "bank": "<path d=\"M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18\"/>", "bed": "<path d=\"M3 18V6M3 14h18v4M21 14v-3a3 3 0 0 0-3-3h-7v6\"/><circle cx=\"7\" cy=\"11\" r=\"1.6\"/>", "glass": "<path d=\"M5 4h14l-7 9zM12 13v7M8 20h8\"/>", "bag": "<path d=\"M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0\"/>", "cal": "<rect x=\"4\" y=\"5\" width=\"16\" height=\"15\" rx=\"2\"/><path d=\"M4 10h16M9 3v4M15 3v4\"/>", "map": "<path d=\"M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14\"/>", "img": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><circle cx=\"9\" cy=\"10\" r=\"1.6\"/><path d=\"M4 18l5-5 4 4 3-3 4 4\"/>", "check": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12.5l3 3 5-6\"/>", "gear": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1\"/>", "out": "<path d=\"M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9\"/>", "search": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-4-4\"/>", "eye": "<path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "edit": "<path d=\"M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4\"/>", "arch": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"5\" rx=\"1\"/><path d=\"M5 9v10h14V9M10 13h4\"/>", "trash": "<path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6\"/>", "copy": "<rect x=\"8\" y=\"8\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2\"/>", "bell": "<path d=\"M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7zM10 20a2 2 0 0 0 4 0\"/>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18\"/>", "bolt": "<path d=\"M13 3L5 14h6l-1 7 8-11h-6z\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "sync": "<path d=\"M20 11a8 8 0 0 0-14-4M4 4v4h4M4 13a8 8 0 0 0 14 4M20 20v-4h-4\"/>", "doc": "<path d=\"M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "chev": "<path d=\"M9 6l6 6-6 6\"/>", "chart": "<path d=\"M5 20V10M12 20V4M19 20v-7\"/>"};
+  function ic(n) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICON[n] || '') + '</svg>'; }
   function norm(s) { return String(s == null ? "" : s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function slug(s) { return norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
@@ -275,37 +364,46 @@ tr.row:hover td { background:var(--soft); }
 
   /* ---------- tableau de bord ---------- */
   function dash(c) {
-    var t = PLACES.length, full = 0, inc = 0, nophoto = 0, tov = 0, pub = 0, nofiche = 0, stale = 0, drafts = 0, noPhotoFiche = 0, missEss = 0;
+    var t = PLACES.length, full = 0, nophoto = 0, tov = 0, pub = 0, nofiche = 0, stale = 0, drafts = 0, noPhotoFiche = 0, missEss = 0, inc = 0;
     PLACES.forEach(function (p) {
       var i = info(p); if (!i.fiche) { nofiche++; nophoto++; return; }
       if (i.complete) full++; else { inc++; missEss++; }
       if (!i.photo) { nophoto++; noPhotoFiche++; } if (i.ver === "toverify" || i.ver === "unverified") tov++; if (i.stale) stale++;
       if (i.status === "published") pub++; if (i.status === "draft") drafts++;
     });
-    var fiches = t - nofiche, pct = t ? Math.round(100 * full / t) : 0;
-    var recent = Object.keys(META).filter(function (k) { return DET[k]; }).sort(function (a, b) { return (META[b].updated_at || "") > (META[a].updated_at || "") ? 1 : -1; }).slice(0, 6);
+    var tocomp = t - full, pct = t ? Math.round(1000 * full / t) / 10 : 0, pctS = String(pct).replace(".", ","), pc2 = t ? Math.round(100 * tocomp / t) : 0, pnp = t ? Math.round(100 * nophoto / t) : 0, ptv = t ? Math.round(100 * tov / t) : 0;
+    var recent = Object.keys(META).filter(function (k) { return DET[k]; }).sort(function (a, b) { return (META[b].updated_at || "") > (META[a].updated_at || "") ? 1 : -1; }).slice(0, 5);
     var byKey = {}; PLACES.forEach(function (p) { byKey[p.k] = p; });
-    function todo(label, n, f) { return '<button class="todo" data-go="' + f + '"><span>' + label + '</span><b>' + n + '</b></button>'; }
-    c.innerHTML = '<h2 class="t">Tableau de bord</h2><p class="sub">État réel du contenu OCHANE · Paris</p>' +
-      '<div class="cards">' +
-      stat("Lieux au total", t, "all") + stat("Fiches complètes", full, "complete") + stat("Fiches incomplètes", inc, "incomplete") + stat("Lieux sans photo", nophoto, "nophoto") + stat("Fiches à vérifier", tov, "toverify") + stat("Fiches publiées", pub, "published") +
-      '</div>' +
-      '<div class="panel" style="margin-top:14px"><h3>Progression globale</h3><b style="font-size:1.1rem">Fiches complétées : ' + full + ' / ' + t + '</b> <span style="color:var(--muted)">(' + pct + ' %)</span><div class="bar"><i style="width:' + pct + '%"></i></div><small style="color:var(--muted)">Complète ≠ vérifiée ≠ publiée : trois états distincts. ' + fiches + ' lieux ont une fiche.</small></div>' +
-      '<div class="grid2"><div class="panel"><h3>À faire en priorité</h3>' +
-      todo("Lieux sans fiche", nofiche, "nofiche") + todo("Fiches sans photographie", noPhotoFiche, "nophoto-fiche") + todo("Fiches avec informations essentielles manquantes", missEss, "incomplete") + todo("Vérification ancienne (plus de " + STALE_DAYS + " jours)", stale, "stale") + todo("Brouillons en attente", drafts, "draft") + '</div>' +
-      '<div class="panel"><h3>Dernières modifications</h3>' + (recent.length ? recent.map(function (k) { var p = byKey[k]; return p ? '<div class="recent" data-edit="' + esc(k) + '"><span>' + esc(p.name) + '</span><small>' + ago(META[k].updated_at) + '</small></div>' : ""; }).join("") : '<span style="color:var(--muted)">Aucune modification enregistrée depuis l\'admin pour l\'instant.</span>') + '</div></div>';
-    function stat(l, n, f) { return '<button class="stat" data-go="' + f + '"><b>' + n + '</b><span>' + l + '</span></button>'; }
-    c.querySelectorAll("[data-go]").forEach(function (b) { b.onclick = function () { go("list", { cat: "all", f: b.dataset.go, q: "", page: 0 }); }; });
+    function card(cls, icon, n, label, f, extra) { return '<button class="stat ' + cls + '" data-go="' + f + '"><span class="ico">' + ic(icon) + '</span><b>' + n + '</b><span>' + label + '</span>' + (extra ? '<div class="ex">' + extra + '</div>' : "") + '</button>'; }
+    function mini(p) { return '<span class="mini"><i style="width:' + p + '%"></i></span>'; }
+    function todo(cls, label, n, f) { return '<button class="todo" data-go="' + f + '"><span class="bd ' + cls + '">' + n + '</span><span class="lb">' + label + '</span><span class="ch">' + ic("chev").replace("<svg", "<svg width=16 height=16 style=\'stroke:currentColor;fill:none;stroke-width:2\'") + '</span></button>'; }
+    var skyline = '<svg viewBox="0 0 560 120" preserveAspectRatio="xMaxYMax slice" aria-hidden="true"><g fill="none" stroke="#8a9bb5" stroke-width="1.4"><path d="M0 118h560"/><path d="M40 118V84h26v34M66 84l-13-14-13 14"/><path d="M110 118V76h60v42M120 76V58h40v18M130 58c0-14 20-14 20 0M140 40v-8"/><path d="M200 118V88h40v30M215 88V70h10v18"/><path d="M290 118V90h50v28M300 90V72h30v18"/><path d="M420 118L440 20M476 118L456 20M440 20l16 0M447 20V6M432 70h30M426 96h42M436 44h22"/><path d="M500 118V92h40v26"/></g></svg>';
+    var ringR = 62, circ = 2 * Math.PI * ringR, dash2 = circ * Math.min(pct, 100) / 100;
+    c.innerHTML = '<div class="hero"><h2>Bienvenue sur OCHANE</h2><p>Gérez et enrichissez le meilleur de Paris</p>' + skyline + '</div>' +
+      '<div class="cards six">' +
+      card("t-blue", "pin", t, "Lieux enregistrés", "all") + card("t-green", "check", full, "Fiches complètes", "complete", pctS + " %") +
+      card("t-orange", "doc", tocomp, "Fiches à compléter", "tocomplete", pc2 + " % " + mini(pc2)) + card("t-red", "img", nophoto, "Sans photographie", "nophoto", pnp + " % " + mini(pnp)) +
+      card("t-purple", "sync", tov, "Fiches à vérifier", "toverify", ptv + " % " + mini(ptv)) + card("t-blue2", "globe", 1, "Ville disponible", "all", "Paris") + '</div>' +
+      '<div class="row3"><div class="panel"><div class="ph3"><h3>' + ic("bolt") + 'À faire en priorité</h3></div>' +
+      todo("r", "Lieux sans fiche", nofiche, "nofiche") + todo("o", "Fiches sans photographie", noPhotoFiche, "nophoto-fiche") + todo("p", "Fiches avec informations essentielles manquantes", missEss, "incomplete") + todo("b", "Vérification ancienne (plus de " + STALE_DAYS + " jours)", stale, "stale") + todo("g", "Brouillons en attente", drafts, "draft") + '</div>' +
+      '<div class="panel"><div class="ph3"><h3>' + ic("clock") + 'Dernières modifications</h3></div>' + (recent.length ? recent.map(function (k) { var p = byKey[k], i = p && info(p); return p ? '<div class="rc" data-edit="' + esc(k) + '">' + (i.photo ? '<img class="thumb" loading="lazy" alt="" src="' + esc(rsrc(i.d.photo.src)) + '" onerror="this.style.visibility=\'hidden\'">' : '<span class="thumb ph">—</span>') + '<div><b>' + esc(p.name) + '</b><small>' + CATS[p.kind] + ' · ' + ordn(p.arr) + '</small></div><em>' + ago(META[k].updated_at) + '</em></div>' : ""; }).join("") : '<span style="color:var(--muted)">Aucune modification enregistrée depuis l\'admin pour l\'instant.</span>') + '</div>' +
+      '<div class="panel"><div class="ph3"><h3>' + ic("chart") + 'Progression globale</h3></div><div style="display:flex;align-items:center;gap:16px"><div class="ring"><svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="' + ringR + '" fill="none" stroke="var(--soft)" stroke-width="12"/><circle cx="75" cy="75" r="' + ringR + '" fill="none" stroke="var(--gold)" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + dash2.toFixed(1) + ' ' + circ.toFixed(1) + '"/></svg><b>' + pctS + ' %</b></div><div><b style="font-size:1.4rem">' + full + ' / ' + t + '</b><div style="color:var(--muted)">fiches complétées</div><div style="margin-top:8px;font-size:.82rem;color:var(--muted)">' + pub + ' publiée(s)</div></div></div><div class="msgbox">Il reste ' + tocomp + ' fiche(s) à compléter. « Complète » ne veut pas dire « vérifiée » ni « publiée » : ce sont trois états distincts.</div></div></div>' +
+      '<div class="panel tpanel"><div class="ph3"><h3>Tous les lieux</h3><button class="a" id="seeAll" style="color:var(--blue);background:none;border:0;cursor:pointer">Voir tout →</button></div><table>' + THEAD + '<tbody id="dashRows"></tbody></table></div>';
+    var rows = []; PLACES.forEach(function (p) { var i = info(p); if (i.fiche) rows.push({ p: p, i: i }); });
+    rows.sort(function (a, b) { return ((META[b.p.k] || {}).updated_at || "") > ((META[a.p.k] || {}).updated_at || "") ? 1 : -1; });
+    $("dashRows").innerHTML = rows.slice(0, 6).map(rowHtml).join(""); bindRows(c);
+    $("seeAll").onclick = function () { go("list", { cat: "all", f: "all", q: "", page: 0 }); };
+    c.querySelectorAll("[data-go]").forEach(function (b) { b.onclick = function () { var f = b.dataset.go; go("list", { cat: "all", f: f === "tocomplete" ? "incomplete" : f, q: "", page: 0 }); }; });
     c.querySelectorAll("[data-edit]").forEach(function (b) { b.onclick = function () { openEdit(byKey[b.dataset.edit]); }; });
   }
 
   /* ---------- liste ---------- */
-  var FILTERS = [["all", "Tous"], ["complete", "Fiches complètes"], ["incomplete", "Fiches incomplètes"], ["nofiche", "Sans fiche"], ["nophoto", "Sans photo"], ["nophoto-fiche", "Fiche sans photo"], ["draft", "Brouillons"], ["published", "Publiés"], ["archived", "Archivés"], ["toverify", "À vérifier"], ["stale", "Vérification ancienne"]];
+  var FILTERS = [["all", "Tous"], ["complete", "Fiches complètes"], ["incomplete", "Fiches incomplètes"], ["tocomplete", "À compléter (avec ou sans fiche)"], ["nofiche", "Sans fiche"], ["nophoto", "Sans photo"], ["nophoto-fiche", "Fiche sans photo"], ["draft", "Brouillons"], ["published", "Publiés"], ["archived", "Archivés"], ["toverify", "À vérifier"], ["stale", "Vérification ancienne"]];
   var SORTS = [["name", "Alphabétique"], ["cat", "Catégorie"], ["arr", "Arrondissement"], ["mod", "Dernière modification"], ["ver", "Date de vérification"], ["pct", "Niveau de complétude"]];
   function match(p, i) {
     if (S.cat !== "all" && !(S.cat === "sa" ? (p.kind === "s" || p.kind === "a") : p.kind === S.cat)) return false;
     var f = S.f;
-    if (f === "complete" && !i.complete) return false; if (f === "incomplete" && !(i.fiche && !i.complete)) return false;
+    if (f === "complete" && !i.complete) return false; if (f === "tocomplete" && i.complete) return false; if (f === "incomplete" && !(i.fiche && !i.complete)) return false;
     if (f === "nofiche" && i.fiche) return false; if (f === "nophoto" && i.photo) return false; if (f === "nophoto-fiche" && !(i.fiche && !i.photo)) return false;
     if (f === "draft" && i.status !== "draft") return false; if (f === "published" && i.status !== "published") return false; if (f === "archived" && i.status !== "archived") return false;
     if (f === "toverify" && !(i.fiche && (i.ver === "toverify" || i.ver === "unverified"))) return false; if (f === "stale" && !i.stale) return false;
@@ -322,42 +420,50 @@ tr.row:hover td { background:var(--soft); }
       pct: function (a, b) { return a.i.pct - b.i.pct; }
     }[s]; return rows.sort(cmp);
   }
+  function catTag(k) { return '<span class="tag ' + k + '">' + ({ m: "Monument", r: "Restaurant", h: "Hôtel", b: "Boutique", s: "Soirée", a: "Activité" })[k] + '</span>'; }
+  function ibtn(a, v, k, icon, title, cls) { return '<button class="icb ' + (cls || "") + '" data-' + a + '="' + esc(k) + '" title="' + title + '" aria-label="' + title + '">' + ic(icon) + '</button>'; }
+  function rowHtml(r) {
+    var p = r.p, i = r.i, ph = i.photo ? rsrc(i.d.photo.src) : "", stx;
+    if (i.status === "archived") stx = chip("Archivée", "mut"); else if (i.status === "draft") stx = chip("Brouillon", "warn"); else if (i.fiche && i.complete) stx = chip("Complète", "ok"); else stx = chip("À compléter", "warn");
+    var vr = VER[i.ver];
+    return '<tr class="row"><td>' + (ph ? '<img class="thumb" loading="lazy" decoding="async" alt="" src="' + esc(ph) + '" onerror="this.outerHTML=\'<span class=&quot;thumb ph&quot;>photo</span>\'">' : '<span class="thumb ph">—</span>') + '</td>' +
+      '<td><span class="nm" data-e="' + esc(p.k) + '">' + esc(p.name) + '</span></td><td>' + catTag(p.kind) + '</td><td>' + ordn(p.arr) + '</td>' +
+      '<td>' + stx + (i.fiche ? ' <small style="color:var(--muted)">' + i.pct + ' %</small>' : '') + '</td>' +
+      '<td>' + (i.photo ? '<span class="okx">✓ Oui</span>' : '<span class="nox">✕ Non</span>') + '</td>' +
+      '<td>' + (i.fiche ? (i.d.verified ? fmtDate(i.d.verified) : chip(vr[0], vr[1])) : "—") + '</td>' +
+      '<td><div class="acts">' + (i.fiche ? ibtn("pv", 0, p.k, "eye", "Aperçu") : "") + ibtn("e", 0, p.k, "edit", "Modifier") + '<button class="icb" disabled title="Bientôt : duplication de lieu" aria-label="Dupliquer">' + ic("copy") + '</button>' +
+      (i.fiche ? ibtn("ar", 0, p.k, "arch", i.status === "archived" ? "Restaurer la fiche" : "Archiver la fiche (réversible)") + ibtn("rm", 0, p.k, "trash", "Supprimer la fiche", "bad") : "") + '</div></td></tr>';
+  }
+  function bindRows(root) {
+    var byK = {}; PLACES.forEach(function (p) { byK[p.k] = p; });
+    root.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.e]); }; });
+    root.querySelectorAll("[data-pv]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.pv], "prev"); }; });
+    root.querySelectorAll("[data-ar]").forEach(function (b) { b.onclick = function () { archive(byK[b.dataset.ar]); }; });
+    root.querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { remove(byK[b.dataset.rm]); }; });
+  }
+  var THEAD = '<thead><tr><th>Photo</th><th>Nom du lieu</th><th>Catégorie</th><th>Arr.</th><th>Statut</th><th>Photo</th><th>Dernière vérification</th><th>Actions</th></tr></thead>';
   function list(c) {
     var rows = []; PLACES.forEach(function (p) { var i = info(p); if (match(p, i)) rows.push({ p: p, i: i }); });
     sorted(rows); var pages = Math.max(1, Math.ceil(rows.length / PER)); if (S.page >= pages) S.page = pages - 1;
     var slice = rows.slice(S.page * PER, S.page * PER + PER);
     var title = S.cat === "all" ? "Tous les lieux" : { r: "Restaurants", m: "Monuments & musées", h: "Hôtels", sa: "Sorties", b: "Boutiques" }[S.cat];
-    c.innerHTML = '<h2 class="t">' + title + '</h2><p class="sub">Paris · ' + rows.length + ' lieu(x)</p>' +
+    c.innerHTML = '<h2 class="t" style="margin-top:22px">' + title + '</h2><p class="sub">Paris · ' + rows.length + ' lieu(x)</p>' +
       '<div class="tools"><input id="lq" style="max-width:300px" type="search" placeholder="Filtrer par nom, quartier, adresse…" value="' + esc(S.q) + '">' +
       '<select id="lf">' + FILTERS.map(function (x) { return '<option value="' + x[0] + '"' + (S.f === x[0] ? " selected" : "") + '>' + x[1] + '</option>'; }).join("") + '</select>' +
       '<select id="ls">' + SORTS.map(function (x) { return '<option value="' + x[0] + '"' + (S.sort === x[0] ? " selected" : "") + '>Tri : ' + x[1] + '</option>'; }).join("") + '</select></div>' +
-      '<table><thead><tr><th></th><th>Lieu</th><th>Catégorie</th><th>Arr.</th><th>Fiche</th><th>Photo</th><th>Vérification</th><th>Actions</th></tr></thead><tbody>' +
-      slice.map(function (r) {
-        var p = r.p, i = r.i, st = STAT[i.status], vr = VER[i.ver], ph = i.photo ? rsrc(i.d.photo.src) : "";
-        return '<tr class="row"><td>' + (ph ? '<img class="thumb" loading="lazy" decoding="async" alt="" src="' + esc(ph) + '" onerror="this.outerHTML=\'<span class=&quot;thumb ph&quot;>photo</span>\'">' : '<span class="thumb ph">—</span>') + '</td>' +
-          '<td><span class="nm" data-e="' + esc(p.k) + '">' + esc(p.name) + '</span></td><td>' + CATS[p.kind] + '</td><td>' + ordn(p.arr) + '</td>' +
-          '<td>' + chip(st[0], st[1]) + (i.fiche ? ' <small style="color:var(--muted)">' + i.pct + ' %</small>' : '') + '</td>' +
-          '<td>' + (i.photo ? chip("Oui", "ok") : chip("Non", "bad")) + '</td>' +
-          '<td>' + (i.fiche ? chip(vr[0], vr[1]) + (i.d.verified ? ' <small style="color:var(--muted)">' + fmtDate(i.d.verified) + '</small>' : "") : "—") + '</td>' +
-          '<td><div class="acts"><button data-e="' + esc(p.k) + '">Modifier</button>' +
-          (i.fiche ? '<button data-pv="' + esc(p.k) + '">Aperçu</button><button data-ar="' + esc(p.k) + '">' + (i.status === "archived" ? "Restaurer" : "Archiver") + '</button><button class="bad" data-rm="' + esc(p.k) + '">Supprimer</button>' : "") + '</div></td></tr>';
-      }).join("") + '</tbody></table>' +
+      '<table>' + THEAD + '<tbody>' + slice.map(rowHtml).join('') + '</tbody></table>' +
       (rows.length ? "" : '<div class="panel" style="text-align:center;color:var(--muted)">Aucun lieu ne correspond.</div>') +
       '<div class="pager"><button id="pp"' + (S.page ? "" : " disabled") + '>←</button><span>Page ' + (S.page + 1) + ' / ' + pages + '</span><button id="pn"' + (S.page < pages - 1 ? "" : " disabled") + '>→</button></div>';
-    var byK = {}; PLACES.forEach(function (p) { byK[p.k] = p; });
     var t; $("lq").oninput = function () { clearTimeout(t); var v = this.value; t = setTimeout(function () { S.q = v; S.page = 0; list(c); var q = $("lq"); q.focus(); q.setSelectionRange(v.length, v.length); }, 180); };
     $("lf").onchange = function () { S.f = this.value; S.page = 0; list(c); }; $("ls").onchange = function () { S.sort = this.value; S.page = 0; list(c); };
     $("pp").onclick = function () { S.page--; list(c); window.scrollTo(0, 0); }; $("pn").onclick = function () { S.page++; list(c); window.scrollTo(0, 0); };
-    c.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.e]); }; });
-    c.querySelectorAll("[data-pv]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.pv], "prev"); }; });
-    c.querySelectorAll("[data-ar]").forEach(function (b) { b.onclick = function () { archive(byK[b.dataset.ar]); }; });
-    c.querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { remove(byK[b.dataset.rm]); }; });
+    bindRows(c);
   }
   function verif(c) {
     var rows = [];
     PLACES.forEach(function (p) { var i = info(p); if (i.fiche && (i.ver !== "verified" || i.stale)) rows.push({ p: p, i: i }); });
     rows.sort(function (a, b) { return String((a.i.d.verified) || "").localeCompare(String(b.i.d.verified || "")); });
-    c.innerHTML = '<h2 class="t">Vérifications</h2><p class="sub">Fiches dont les informations doivent être contrôlées. Une date n\'est jamais mise à jour automatiquement : c\'est toi qui valides.</p>' +
+    c.innerHTML = '<h2 class="t" style="margin-top:22px">Vérifications</h2><p class="sub">Fiches dont les informations doivent être contrôlées. Une date n\'est jamais mise à jour automatiquement : c\'est toi qui valides.</p>' +
       (rows.length ? '<table><thead><tr><th></th><th>Lieu</th><th>Statut</th><th>Dernière vérification</th><th>À contrôler</th><th></th></tr></thead><tbody>' + rows.map(function (r) {
         var vr = VER[r.i.ver], todo = arr(r.i.d.todo);
         return '<tr class="row"><td></td><td><span class="nm" data-e="' + esc(r.p.k) + '">' + esc(r.p.name) + '</span></td><td>' + chip(r.i.stale ? "Ancienne" : vr[0], r.i.stale ? "warn" : vr[1]) + '</td><td>' + (r.i.d.verified ? fmtDate(r.i.d.verified) : "—") + '</td><td>' + (todo.length ? esc(todo.join(" · ")) : '<span style="color:var(--muted)">horaires, tarifs, adresse, site</span>') + '</td><td><button data-e="' + esc(r.p.k) + '">Ouvrir</button></td></tr>';
@@ -546,8 +652,15 @@ tr.row:hover td { background:var(--soft); }
   }
 
   /* ---------- démarrage ---------- */
+  function decorate() {
+    document.querySelectorAll(".nav[data-i]").forEach(function (b) { if (!b.querySelector("svg")) b.insertAdjacentHTML("afterbegin", ic(b.dataset.i)); });
+    $("sico").innerHTML = ic("search"); $("citypill").innerHTML = ic("pin") + "Paris ▾"; $("bAdd").innerHTML = ic("plus").replace("<svg", "<svg width=16 height=16 style='stroke:#fff;fill:none;stroke-width:2.2'") + "Ajouter un lieu"; $("bBell").innerHTML = ic("bell") + '<span class="dot"></span>';
+    $("cityrow").innerHTML = ic("pin") + "<span>Paris</span>";
+    var nm = (SB.email || "Administrateur").split("@")[0]; nm = nm.charAt(0).toUpperCase() + nm.slice(1);
+    $("who").textContent = nm; $("av").textContent = $("av2").textContent = nm.charAt(0).toUpperCase();
+  }
   async function start() {
-    try { $("login").classList.add("hidden"); await loadAll(); $("app").classList.remove("hidden"); $("who").textContent = SB.email || "Administrateur"; go("dash"); }
+    try { $("login").classList.add("hidden"); await loadAll(); $("app").classList.remove("hidden"); decorate(); go("dash"); }
     catch (e) { $("login").classList.remove("hidden"); $("loginMsg").textContent = "Chargement impossible : " + e.message; }
   }
   $("bLogin").onclick = async function () {
@@ -559,7 +672,8 @@ tr.row:hover td { background:var(--soft); }
   $("bOut").onclick = function () { try { localStorage.removeItem("ochane-admin-sb"); } catch (e) { } location.reload(); };
   $("burger").onclick = function () { $("side").classList.toggle("open"); };
   document.querySelectorAll(".nav[data-v]").forEach(function (b) { b.onclick = function () { go(b.dataset.v, b.dataset.v === "list" ? { cat: b.dataset.cat, f: "all", q: "", page: 0 } : {}); }; });
-  $("bIncomp").onclick = function () { go("list", { cat: "all", f: "incomplete", q: "", page: 0 }); };
+  $("bAdd").onclick = function () { toast("Bientôt : l'ajout de lieux arrive avec la migration des lieux vers Supabase."); };
+  $("bBell").onclick = function () { go("verif"); };
   var gt; $("gq").addEventListener("input", function () { var v = this.value; clearTimeout(gt); gt = setTimeout(function () { if (S.view !== "list") go("list", { cat: "all", f: "all", q: v, page: 0 }); else { S.q = v; S.page = 0; list($("content")); } }, 200); });
   function theme(m) { document.documentElement.setAttribute("data-theme", m); try { localStorage.setItem("ochane-admin-theme", m); } catch (e) { } }
   var th = null; try { th = localStorage.getItem("ochane-admin-theme"); } catch (e) { } theme(th || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
