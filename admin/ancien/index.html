@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ochane · Admin</title>
+<style>
+:root { --bg:#f4f6fa; --card:#fff; --ink:#0d2b52; --muted:#5b6b82; --line:#d9e0ea; --gold:#c8962e; --ok:#12805c; --bad:#b3261e; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0b1522; --card:#121f31; --ink:#e8eef7; --muted:#93a4bb; --line:#233650; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+header { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; background:#0d2b52; color:#fff; position:sticky; top:0; z-index:10; }
+header h1 { margin:0; font-size:1.05rem; letter-spacing:.12em; }
+header .sp { flex:1; }
+button, .btn { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:8px 14px; }
+button.pri { background:var(--gold); border-color:var(--gold); color:#fff; font-weight:700; }
+button.bad { color:var(--bad); }
+button:disabled { opacity:.45; cursor:not-allowed; }
+header button { border-color:rgba(255,255,255,.35); background:transparent; color:#fff; }
+header button.pri { background:var(--gold); }
+#status { font-size:.85rem; opacity:.9; }
+main { display:grid; grid-template-columns:340px 1fr; gap:16px; padding:16px; max-width:1200px; margin:0 auto; }
+@media (max-width: 860px) { main { grid-template-columns:1fr; } #list { max-height:40vh; } }
+.panel { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+#list { overflow:auto; max-height:calc(100vh - 110px); position:sticky; top:70px; align-self:start; }
+#q, select, input[type=text], input[type=url], input[type=date], textarea { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+textarea { min-height:78px; resize:vertical; }
+.row { padding:7px 8px; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.row:hover, .row.sel { background:var(--bg); }
+.row.sel { outline:2px solid var(--gold); }
+.row small { color:var(--muted); }
+.tag { font-size:.7rem; padding:1px 7px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; }
+.tag.ok { color:var(--ok); border-color:var(--ok); }
+.tag.ph { color:var(--gold); border-color:var(--gold); }
+label { display:block; font-weight:700; margin:14px 0 4px; font-size:.88rem; }
+label small { font-weight:400; color:var(--muted); }
+fieldset { border:1px solid var(--line); border-radius:12px; margin:16px 0 0; padding:4px 14px 14px; }
+legend { font-weight:800; padding:0 6px; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width: 600px) { .g2 { grid-template-columns:1fr; } }
+#photoPrev { max-width:100%; border-radius:10px; margin-top:8px; display:block; }
+.msg { margin:10px 0; padding:9px 12px; border-radius:10px; font-size:.9rem; }
+.msg.err { background:#fde8e6; color:var(--bad); }
+.msg.ok { background:#e2f5ee; color:var(--ok); }
+.hint { color:var(--muted); font-size:.85rem; }
+#welcome { text-align:center; padding:40px 16px; }
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+<script src="../../data/ochane-config.js"></script>
+<header>
+  <h1>OCHANE · ADMIN</h1>
+  <span id="status">Aucun dossier ouvert</span>
+  <span class="sp"></span>
+  <button id="bOut">Se déconnecter</button>
+</header>
+
+<div id="welcome" class="panel" style="margin:16px;max-width:760px;margin-inline:auto">
+  <h2 style="margin-top:0">Administration des fiches</h2>
+  <fieldset style="text-align:left"><legend>Connexion</legend>
+    <div id="sbBox"><label for="s_email">Email</label><input type="text" id="s_email" autocomplete="username" inputmode="email">
+    <label for="s_pw">Mot de passe</label><input type="password" id="s_pw" autocomplete="current-password">
+    <button id="bSb" class="pri" style="margin-top:12px">Se connecter</button></div>
+    <p id="sbOff" class="hint hidden">Supabase n'est pas encore configuré (data/ochane-config.js).</p>
+  </fieldset>
+  <details style="text-align:left;margin-top:14px"><summary class="hint">Autres modes (GitHub, dossier local)</summary>
+  <fieldset style="text-align:left"><legend>En ligne via GitHub</legend>
+    <p class="hint" style="margin:8px 0">Les modifications sont enregistrées directement dans le dépôt GitHub du site ; Vercel met ochane.com à jour en environ 1 minute.</p>
+    <div class="g2"><div><label for="g_repo">Dépôt</label><input type="text" id="g_repo" value="soufianzariouh36-stack/ochane"></div><div><label for="g_branch">Branche</label><input type="text" id="g_branch" value="main"></div></div>
+    <label for="g_token">Jeton d'accès GitHub <small>(<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">le créer</a> : dépôt ochane uniquement, permission « Contents : Read and write »)</small></label>
+    <input type="password" id="g_token" autocomplete="off" placeholder="github_pat_…">
+    <label style="font-weight:400"><input type="checkbox" id="g_remember"> Mémoriser sur cet appareil (à éviter sur un ordinateur partagé)</label>
+    <button id="bGh" class="pri" style="margin-top:12px">Se connecter</button>
+  </fieldset>
+  <fieldset style="text-align:left"><legend>Sur cet ordinateur</legend>
+  <button id="bOpen2">Ouvrir le dossier ochane (Chrome, Edge, Brave)</button></fieldset>
+  </details>
+  <h3>Mode dossier local</h3>
+  <p>Clique sur <b>Ouvrir le dossier ochane</b> et choisis le dossier du site sur ton ordinateur (celui qui contient <code>index.html</code>). Tu modifies les fiches ici ; l'outil écrit directement <code>data/place-details.js</code> et les photos dans <code>img/places/</code>. Il ne reste ensuite qu'à faire le <code>git push</code>.</p>
+  <p class="hint">Fonctionne avec Chrome, Edge ou Brave sur ordinateur. Aucune donnée n'est envoyée sur Internet : tout reste sur ta machine. Une copie de sécurité de l'ancien fichier est enregistrée dans <code>_travail/</code> à chaque enregistrement.</p>
+</div>
+
+<main id="app" class="hidden">
+  <aside id="list" class="panel">
+    <input id="q" type="search" placeholder="Rechercher un lieu…" autocomplete="off">
+    <div style="display:flex;gap:6px;margin:8px 0;flex-wrap:wrap">
+      <select id="fil" style="width:auto"><option value="all">Tous</option><option value="det">Avec fiche</option><option value="nodet">Sans fiche</option><option value="nophoto">Sans photo</option></select>
+      <span class="hint" id="count" style="align-self:center"></span>
+    </div>
+    <div id="rows"></div>
+  </aside>
+  <section id="edit" class="panel">
+    <p class="hint">Choisis un lieu dans la liste.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var dir = null, DET = {}, HEADER = "", PLACES = [], cur = null, photoBlob = null, dirty = false;
+
+  function norm(s) { return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+  function slug(s) { return norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
+  function setStatus(t) { $("status").textContent = t; }
+  function ordn(n) { return n === 1 ? "1er" : n + "e"; }
+
+  /* ---------- fichiers ---------- */
+  async function getDir(path, create) {
+    var h = dir, parts = path.split("/").filter(Boolean);
+    for (var i = 0; i < parts.length; i++) h = await h.getDirectoryHandle(parts[i], { create: !!create });
+    return h;
+  }
+  var mode = "fs", SB = { access: "", refresh: "" }, CFG = window.OCHANE_CONFIG || {}, GH = { owner: "", repo: "", branch: "main", token: "" };
+  async function ghApi(url, opt) {
+    opt = opt || {}; opt.cache = "no-store";
+    opt.headers = Object.assign({ Authorization: "Bearer " + GH.token, Accept: "application/vnd.github+json" }, opt.headers || {});
+    var r = await fetch("https://api.github.com/repos/" + GH.owner + "/" + GH.repo + url, opt);
+    if (!r.ok) { var t = ""; try { t = (await r.json()).message; } catch (e) { } var er = new Error("GitHub " + r.status + (t ? " : " + t : "")); er.status = r.status; throw er; }
+    return r;
+  }
+  async function sbFetch(path, opt, retry) {
+    opt = opt || {}; opt.cache = "no-store";
+    opt.headers = Object.assign({ apikey: CFG.supabaseKey, Authorization: "Bearer " + (SB.access || CFG.supabaseKey) }, opt.headers || {});
+    var r = await fetch(CFG.supabaseUrl + path, opt);
+    if (r.status === 401 && !retry && SB.refresh) { await sbToken({ grant_type: "refresh_token", refresh_token: SB.refresh }); return sbFetch(path, opt, true); }
+    if (!r.ok) { var t = ""; try { var j = await r.json(); t = j.message || j.msg || j.error_description || j.error || ""; } catch (e) { } throw new Error((t || "Erreur") + " (" + r.status + ")"); }
+    return r;
+  }
+  async function sbToken(body) {
+    var grant = body.grant_type, r = await fetch(CFG.supabaseUrl + "/auth/v1/token?grant_type=" + grant, { method: "POST", headers: { apikey: CFG.supabaseKey, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    var j = await r.json();
+    if (!r.ok) throw new Error(r.status === 400 ? "Email ou mot de passe incorrect." : (j.msg || j.error_description || "Connexion impossible"));
+    SB.access = j.access_token; SB.refresh = j.refresh_token;
+    try { localStorage.setItem("ochane-admin-sb", JSON.stringify({ refresh: SB.refresh })); } catch (e) { }
+    return j;
+  }
+  async function readBlob(path) {
+    if (/^https?:\/\//.test(path)) { var rr = await fetch(path); if (!rr.ok) throw new Error("introuvable"); return rr.blob(); }
+    if (mode === "sb") { var r0 = await fetch("../../" + path, { cache: "no-store" }); if (!r0.ok) throw new Error("introuvable"); return r0.blob(); }
+    if (mode === "gh") {
+      var r = await ghApi("/contents/" + path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(GH.branch), { headers: { Accept: "application/vnd.github.raw+json" } });
+      return r.blob();
+    }
+    var parts = path.split("/"), name = parts.pop(), d = await getDir(parts.join("/"), false);
+    return (await d.getFileHandle(name)).getFile();
+  }
+  async function readText(path) { return (await readBlob(path)).text(); }
+  function toB64(blob) { return new Promise(function (ok, ko) { var f = new FileReader(); f.onload = function () { ok(String(f.result).split(",")[1]); }; f.onerror = ko; f.readAsDataURL(blob); }); }
+  /* écrit plusieurs fichiers d'un coup : un seul commit en ligne, ou fichiers locaux */
+  async function commit(files, message) {
+    var paths = Object.keys(files);
+    if (mode !== "gh") { for (var i = 0; i < paths.length; i++) await writeFile(paths[i], files[paths[i]]); return; }
+    var ref = await (await ghApi("/git/ref/heads/" + encodeURIComponent(GH.branch))).json();
+    var base = ref.object.sha;
+    var cm = await (await ghApi("/git/commits/" + base)).json();
+    var tree = [];
+    for (var j = 0; j < paths.length; j++) {
+      var f = files[paths[j]], blob = f instanceof Blob ? f : new Blob([f]);
+      var b = await (await ghApi("/git/blobs", { method: "POST", body: JSON.stringify({ content: await toB64(blob), encoding: "base64" }) })).json();
+      tree.push({ path: paths[j], mode: "100644", type: "blob", sha: b.sha });
+    }
+    var nt = await (await ghApi("/git/trees", { method: "POST", body: JSON.stringify({ base_tree: cm.tree.sha, tree: tree }) })).json();
+    var nc = await (await ghApi("/git/commits", { method: "POST", body: JSON.stringify({ message: message, tree: nt.sha, parents: [base] }) })).json();
+    await ghApi("/git/refs/heads/" + encodeURIComponent(GH.branch), { method: "PATCH", body: JSON.stringify({ sha: nc.sha }) });
+  }
+  async function writeFile(path, data) {
+    var parts = path.split("/"), name = parts.pop(), d = await getDir(parts.join("/"), true);
+    var fh = await d.getFileHandle(name, { create: true });
+    var w = await fh.createWritable(); await w.write(data); await w.close();
+  }
+  async function exists(path) { try { await readText(path); return true; } catch (e) { return false; } }
+
+  /* ---------- chargement ---------- */
+  function extractArr(html) {
+    var i = html.indexOf("var ARR = ["); if (i < 0) throw new Error("Liste des lieux introuvable dans index.html");
+    var s = html.indexOf("[", i), depth = 0, inStr = false, q = "", j;
+    for (j = s; j < html.length; j++) {
+      var c = html[j];
+      if (inStr) { if (c === "\\") j++; else if (c === q) inStr = false; continue; }
+      if (c === '"' || c === "'") { inStr = true; q = c; } else if (c === "[") depth++; else if (c === "]") { depth--; if (depth === 0) break; }
+    }
+    return (new Function("return " + html.slice(s, j + 1)))();
+  }
+  async function loadAll() {
+    var html = await readText("index.html"), arr = extractArr(html);
+    PLACES = [];
+    arr.forEach(function (a) { a.items.forEach(function (it) { PLACES.push({ arr: a.n, kind: it[0], name: it[1], metro: it[4] || "", q: a.q }); }); });
+    var txt = ""; try { txt = await readText("data/place-details.js"); } catch (e) { txt = ""; }
+    var k = txt.indexOf("window.OCHANE_DETAILS");
+    HEADER = k > 0 ? txt.slice(0, k) : "/* Ochane - fiches détaillées des lieux. */\n";
+    var w = {}; if (k >= 0) { (new Function("window", txt))(w); }
+    DET = w.OCHANE_DETAILS || {};
+    if (mode === "sb") {
+      var rows = await (await sbFetch("/rest/v1/place_details?select=key,data")).json();
+      rows.forEach(function (r) { if (r.data && r.data._deleted) delete DET[r.key]; else if (r.data) DET[r.key] = r.data; });
+    }
+  }
+  function key(p) { return p.arr + "|" + p.name; }
+
+  /* ---------- liste ---------- */
+  function renderList() {
+    var q = norm($("q").value.trim()), f = $("fil").value, out = $("rows");
+    out.textContent = "";
+    var n = 0;
+    PLACES.forEach(function (p) {
+      var d = DET[key(p)];
+      if (f === "det" && !d) return; if (f === "nodet" && d) return; if (f === "nophoto" && d && d.photo) return;
+      if (q && norm(p.name + " " + p.q).indexOf(q) < 0) return;
+      n++;
+      var r = document.createElement("div"); r.className = "row" + (cur && key(cur) === key(p) ? " sel" : "");
+      var l = document.createElement("div"); var b = document.createElement("b"); b.textContent = p.name; var s = document.createElement("small"); s.textContent = " · " + ordn(p.arr);
+      l.appendChild(b); l.appendChild(s); r.appendChild(l);
+      var t = document.createElement("span");
+      if (d) { var a = document.createElement("span"); a.className = "tag ok"; a.textContent = "fiche"; t.appendChild(a); }
+      if (d && d.photo) { var c = document.createElement("span"); c.className = "tag ph"; c.textContent = "photo"; c.style.marginLeft = "4px"; t.appendChild(c); }
+      r.appendChild(t);
+      r.addEventListener("click", function () { choose(p); });
+      out.appendChild(r);
+    });
+    $("count").textContent = n + " lieu(x)";
+  }
+  function choose(p) {
+    if (dirty && !window.confirm("Modifications non enregistrées. Changer de lieu quand même ?")) return;
+    cur = p; renderForm(); renderList();
+  }
+
+  /* ---------- formulaire ---------- */
+  function lines(v) { return (Array.isArray(v) ? v : (v ? [v] : [])).join("\n"); }
+  function field(id, label, html, hint) { return '<label for="' + id + '">' + label + (hint ? ' <small>' + hint + '</small>' : '') + '</label>' + html; }
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
+  function renderForm() {
+    var d = DET[key(cur)] || {}, h = d.hours || {}, pr = d.price || {}, ac = d.access || {}, ph = d.photo || {};
+    photoBlob = null; dirty = false;
+    var e = $("edit");
+    e.innerHTML =
+      '<h2 style="margin:0">' + esc(cur.name) + '</h2><div class="hint">' + ordn(cur.arr) + ' arrondissement · ' + esc(cur.q) + (DET[key(cur)] ? "" : " · aucune fiche pour l'instant") + '</div>' +
+      '<div id="msg"></div>' +
+      '<fieldset><legend>Contenu affiché</legend>' +
+      field("f_verified", "Date de dernière vérification", '<div style="display:flex;gap:8px"><input type="date" id="f_verified" value="' + esc(d.verified) + '"><button type="button" id="bToday">Aujourd\'hui</button></div>', "(sites officiels)") +
+      field("f_summary", "Description courte", '<textarea id="f_summary">' + esc(d.summary) + '</textarea>', "(utile, pas de texte touristique générique)") +
+      field("f_address", "Adresse complète", '<input type="text" id="f_address" value="' + esc(d.address) + '">') +
+      field("f_metro", "Métro / transports", '<textarea id="f_metro">' + esc(lines(d.metro)) + '</textarea>', "(1 ligne = 1 élément ; 1re ligne = phrase d'intro si plusieurs)") +
+      '<div class="g2"><div>' + field("f_hours", "Horaires officiels", '<textarea id="f_hours">' + esc(lines(h.lines)) + '</textarea>', "(1 ligne = 1 puce)") + '</div><div>' + field("f_hoursNote", "Note sur les horaires", '<textarea id="f_hoursNote">' + esc(h.note) + '</textarea>') + '</div></div>' +
+      '<div class="g2"><div>' + field("f_price", "Tarif indicatif", '<textarea id="f_price">' + esc(lines(pr.lines)) + '</textarea>', "(1 ligne = 1 puce)") + '</div><div>' + field("f_free", "Gratuité", '<textarea id="f_free">' + esc(lines(pr.free)) + '</textarea>', "(1 ligne = 1 puce)") + '</div></div>' +
+      field("f_priceNote", "Note sur les tarifs", '<input type="text" id="f_priceNote" value="' + esc(pr.note) + '">') +
+      '<div class="g2"><div>' + field("f_site", "Site officiel", '<input type="url" id="f_site" placeholder="https://…" value="' + esc(d.site) + '">') + '</div><div>' + field("f_tickets", "Billetterie officielle", '<input type="url" id="f_tickets" placeholder="https://… (vide = pas de bouton)" value="' + esc(d.tickets) + '">') + '</div></div>' +
+      field("f_ticketsLabel", "Libellé du bouton billets", '<input type="text" id="f_ticketsLabel" placeholder="Billets" value="' + esc(d.ticketsLabel) + '">', "(facultatif)") +
+      '<div class="g2"><div>' + field("f_level", "Accessibilité", '<select id="f_level"><option value="">— non renseignée —</option>' + ["Totale", "Partielle", "Limitée"].map(function (o) { return '<option' + (ac.level === o ? " selected" : "") + '>' + o + '</option>'; }).join("") + '</select>') + '</div><div>' + field("f_accNote", "Détail accessibilité", '<textarea id="f_accNote" style="min-height:40px">' + esc(ac.note) + '</textarea>') + '</div></div>' +
+      field("f_tip", "Conseil pratique OCHANE", '<textarea id="f_tip">' + esc(d.tip) + '</textarea>') +
+      '</fieldset>' +
+      '<fieldset><legend>Photo</legend>' +
+      '<div id="photoBox"></div>' +
+      '<input type="file" id="f_file" accept="image/jpeg,image/png,image/webp" style="margin-top:10px">' +
+      '<div class="hint">L\'image est redimensionnée (1600 px max) et enregistrée en JPEG dans img/places/.</div>' +
+      '<div class="g2"><div>' + field("f_alt", "Texte alternatif", '<input type="text" id="f_alt" value="' + esc(ph.alt) + '">') + '</div><div>' + field("f_credit", "Auteur *", '<input type="text" id="f_credit" value="' + esc(ph.credit) + '">') + '</div>' +
+      '<div>' + field("f_license", "Licence * ", '<input type="text" id="f_license" placeholder="CC BY-SA 4.0" value="' + esc(ph.license) + '">') + '</div><div>' + field("f_licenseUrl", "Lien de la licence", '<input type="url" id="f_licenseUrl" value="' + esc(ph.licenseUrl) + '">') + '</div></div>' +
+      field("f_source", "Page source (Wikimedia Commons)", '<input type="url" id="f_source" value="' + esc(ph.source) + '">') +
+      '<button type="button" id="bRmPhoto" class="bad" style="margin-top:12px">Retirer la photo</button>' +
+      '</fieldset>' +
+      '<fieldset><legend>Notes internes <small>(jamais affichées)</small></legend>' +
+      field("f_sources", "Sources consultées", '<textarea id="f_sources">' + esc(lines(d.sources)) + '</textarea>', "(1 ligne = 1 lien)") +
+      field("f_todo", "À vérifier plus tard", '<textarea id="f_todo">' + esc(lines(d.todo)) + '</textarea>') +
+      '</fieldset>' +
+      '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="pri" id="bSave" type="button">Enregistrer</button>' + (DET[key(cur)] ? '<button class="bad" id="bDel" type="button">Supprimer la fiche</button>' : "") + '</div>';
+    showPhoto(ph.src);
+    e.addEventListener("input", function () { dirty = true; }, { once: true });
+    $("bToday").onclick = function () { $("f_verified").value = new Date().toISOString().slice(0, 10); dirty = true; };
+    $("f_file").onchange = onFile; $("bRmPhoto").onclick = rmPhoto; $("bSave").onclick = save;
+    if ($("bDel")) $("bDel").onclick = delFiche;
+  }
+  async function showPhoto(src) {
+    var box = $("photoBox"); box.textContent = "";
+    var url = null;
+    if (photoBlob) url = URL.createObjectURL(photoBlob);
+    else if (src) { try { url = URL.createObjectURL(await readBlob(src)); } catch (e) { url = null; } }
+    if (!url) { box.innerHTML = '<span class="hint">Aucune photo.</span>'; return; }
+    var im = document.createElement("img"); im.id = "photoPrev"; im.src = url; box.appendChild(im);
+  }
+  function msg(t, cls) { var m = $("msg"); if (m) { m.className = "msg " + cls; m.textContent = t; m.scrollIntoView({ block: "nearest" }); } }
+
+  function onFile() {
+    var f = $("f_file").files[0]; if (!f) return;
+    var img = new Image(), u = URL.createObjectURL(f);
+    img.onload = function () {
+      var W = Math.min(1600, img.naturalWidth), H = Math.round(img.naturalHeight * W / img.naturalWidth);
+      var c = document.createElement("canvas"); c.width = W; c.height = H;
+      var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H); x.drawImage(img, 0, 0, W, H);
+      c.toBlob(function (b) { photoBlob = b; dirty = true; showPhoto(null); msg("Photo prête : " + W + " × " + H + " px, " + Math.round(b.size / 1024) + " Ko. Renseigne auteur et licence puis enregistre.", "ok"); }, "image/jpeg", 0.82);
+    };
+    img.onerror = function () { msg("Image illisible.", "err"); };
+    img.src = u;
+  }
+  function rmPhoto() {
+    var d = DET[key(cur)]; photoBlob = null;
+    if (d && d.photo) { dirty = true; d.photo = null; }
+    ["f_alt", "f_credit", "f_license", "f_licenseUrl", "f_source"].forEach(function (i) { $(i).value = ""; });
+    $("f_file").value = ""; showPhoto(null); msg("Photo retirée (effective après « Enregistrer »).", "ok");
+  }
+
+  /* ---------- sauvegarde ---------- */
+  function L(id) { return $(id).value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean); }
+  function V(id) { return $(id).value.trim(); }
+  function badUrl(u) { return u && !/^https:\/\/[^\s]+$/i.test(u); }
+  async function save() {
+    var errs = [];
+    ["f_site", "f_tickets", "f_licenseUrl", "f_source"].forEach(function (i) { if (badUrl(V(i))) errs.push("Lien invalide (https requis) : " + $(i).previousElementSibling.textContent.replace("*", "").trim()); });
+    var old = DET[key(cur)] || {};
+    var hasPhoto = !!photoBlob || (old.photo && old.photo.src);
+    if (hasPhoto && (!V("f_credit") || !V("f_license"))) errs.push("Photo : l'auteur et la licence sont obligatoires.");
+    if (hasPhoto && !V("f_alt")) errs.push("Photo : renseigne le texte alternatif.");
+    if (V("f_tickets") && !V("f_site")) errs.push("Billets : renseigne aussi le site officiel.");
+    if (errs.length) { msg(errs.join(" "), "err"); return; }
+
+    var e = {};
+    if (V("f_verified")) e.verified = V("f_verified");
+    if (V("f_summary")) e.summary = V("f_summary");
+    if (V("f_address")) e.address = V("f_address");
+    var m = L("f_metro"); if (m.length === 1) e.metro = m[0]; else if (m.length > 1) e.metro = m;
+    var hl = L("f_hours"), hn = V("f_hoursNote"); if (hl.length || hn) { e.hours = {}; if (hl.length) e.hours.lines = hl; if (hn) e.hours.note = hn; }
+    var pl = L("f_price"), pf = L("f_free"), pn = V("f_priceNote"); if (pl.length || pf.length || pn) { e.price = {}; if (pl.length) e.price.lines = pl; if (pf.length) e.price.free = pf; if (pn) e.price.note = pn; }
+    if (V("f_site")) e.site = V("f_site");
+    if (V("f_tickets")) e.tickets = V("f_tickets");
+    if (V("f_ticketsLabel")) e.ticketsLabel = V("f_ticketsLabel");
+    if (V("f_level") || V("f_accNote")) { e.access = {}; if (V("f_level")) e.access.level = V("f_level"); if (V("f_accNote")) e.access.note = V("f_accNote"); }
+    if (V("f_tip")) e.tip = V("f_tip");
+    if (hasPhoto) {
+      var src = (old.photo && old.photo.src) || ("img/places/" + slug(cur.name) + ".jpg");
+      e.photo = { src: src, alt: V("f_alt"), credit: V("f_credit"), license: V("f_license") };
+      if (V("f_licenseUrl")) e.photo.licenseUrl = V("f_licenseUrl");
+      if (V("f_source")) e.photo.source = V("f_source");
+      if (old.photo && old.photo.modified) e.photo.modified = old.photo.modified;
+      else if (photoBlob) e.photo.modified = "image redimensionnée et recadrée";
+    }
+    var so = L("f_sources"), td = L("f_todo"); if (so.length) e.sources = so; if (td.length) e.todo = td;
+    if (!Object.keys(e).length) { msg("Fiche vide : rien à enregistrer.", "err"); return; }
+
+    var next = Object.assign({}, DET); next[key(cur)] = e;
+    try {
+      if (mode === "sb") {
+        setStatus("Enregistrement…");
+        if (photoBlob) {
+          var nm = slug(cur.name) + "-" + Date.now().toString(36) + ".jpg";
+          await sbFetch("/storage/v1/object/place-photos/" + nm, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: photoBlob });
+          e.photo.src = CFG.supabaseUrl + "/storage/v1/object/public/place-photos/" + nm;
+        }
+        await sbFetch("/rest/v1/place_details", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify([{ key: key(cur), data: e, updated_at: new Date().toISOString() }]) });
+        next[key(cur)] = e; DET = next; photoBlob = null; dirty = false; renderList(); renderForm();
+        msg("Enregistré : visible tout de suite sur ochane.com.", "ok"); setStatus("Dernier enregistrement : " + new Date().toLocaleTimeString("fr-FR")); return;
+      }
+      var files = {};
+      if (mode !== "gh") { var prev = null; try { prev = await readText("data/place-details.js"); } catch (x) { } if (prev) files["_travail/place-details.sauvegarde-" + new Date().toISOString().replace(/[:.]/g, "-") + ".js"] = prev; }
+      if (photoBlob) files[e.photo.src] = photoBlob;
+      files["data/place-details.js"] = serialize(next);
+      setStatus("Enregistrement…"); await commit(files, "Admin : fiche « " + cur.name + " »");
+      DET = next; photoBlob = null; dirty = false;
+      renderList(); renderForm();
+      msg(mode === "gh" ? "Enregistré et envoyé sur GitHub. Le site se met à jour sur ochane.com dans environ 1 minute." : "Enregistré dans data/place-details.js. Reste à faire le git push.", "ok");
+      setStatus("Dernier enregistrement : " + new Date().toLocaleTimeString("fr-FR"));
+    } catch (x) { msg("Échec de l'enregistrement : " + x.message, "err"); }
+  }
+  async function delFiche() {
+    if (!window.confirm("Supprimer la fiche de « " + cur.name + " » ? (la photo reste dans le dossier)")) return;
+    var next = Object.assign({}, DET); delete next[key(cur)];
+    try {
+      if (mode === "sb") {
+        await sbFetch("/rest/v1/place_details", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify([{ key: key(cur), data: { _deleted: true }, updated_at: new Date().toISOString() }]) });
+        DET = next; dirty = false; renderList(); renderForm(); msg("Fiche supprimée du site.", "ok"); return;
+      }
+      var df = {};
+      if (mode !== "gh") df["_travail/place-details.sauvegarde-" + new Date().toISOString().replace(/[:.]/g, "-") + ".js"] = await readText("data/place-details.js");
+      df["data/place-details.js"] = serialize(next);
+      await commit(df, "Admin : suppression de la fiche « " + cur.name + " »");
+      DET = next; dirty = false; renderList(); renderForm(); msg("Fiche supprimée.", "ok");
+    } catch (x) { msg("Échec : " + x.message, "err"); }
+  }
+  function serialize(o) { return HEADER + "window.OCHANE_DETAILS = " + JSON.stringify(o, null, 2) + ";\n"; }
+
+  /* ---------- démarrage ---------- */
+  if (!CFG.supabaseUrl || !CFG.supabaseKey) { $("sbBox").classList.add("hidden"); $("sbOff").classList.remove("hidden"); }
+  async function sbStart() {
+    mode = "sb"; setStatus("Connexion…");
+    await loadAll(); enter("Admin Ochane");
+  }
+  $("bSb").onclick = async function () {
+    var em = $("s_email").value.trim(), pw = $("s_pw").value;
+    if (!em || !pw) { setStatus("Renseigne l'email et le mot de passe."); return; }
+    try { await sbToken({ grant_type: "password", email: em, password: pw }); await sbStart(); } catch (e) { mode = "fs"; setStatus(e.message); }
+  };
+  $("s_pw").addEventListener("keydown", function (ev) { if (ev.key === "Enter") $("bSb").click(); });
+  try { var ss = JSON.parse(localStorage.getItem("ochane-admin-sb") || "null"); if (ss && ss.refresh && CFG.supabaseUrl) { SB.refresh = ss.refresh; sbToken({ grant_type: "refresh_token", refresh_token: ss.refresh }).then(sbStart).catch(function () { mode = "fs"; setStatus("Session expirée : reconnecte-toi."); }); } } catch (e) { }
+  function enter(label) { $("welcome").classList.add("hidden"); $("app").classList.remove("hidden"); setStatus(label + " · " + PLACES.length + " lieux · " + Object.keys(DET).length + " fiches"); renderList(); }
+  $("bOut").onclick = function () { try { localStorage.removeItem("ochane-admin-gh"); localStorage.removeItem("ochane-admin-sb"); } catch (e) { } location.reload(); };
+  try { var sv = JSON.parse(localStorage.getItem("ochane-admin-gh") || "null"); if (sv) { $("g_repo").value = sv.repo; $("g_branch").value = sv.branch; $("g_token").value = sv.token; $("g_remember").checked = true; } } catch (e) { }
+  $("bGh").onclick = async function () {
+    var rp = $("g_repo").value.trim().split("/"), tk = $("g_token").value.trim();
+    if (rp.length !== 2 || !rp[0] || !rp[1] || !tk) { setStatus("Renseigne le dépôt (propriétaire/nom) et le jeton."); return; }
+    GH = { owner: rp[0], repo: rp[1], branch: $("g_branch").value.trim() || "main", token: tk }; mode = "gh";
+    try {
+      setStatus("Connexion…");
+      var info = await (await ghApi("")).json();
+      if (!info.permissions || !info.permissions.push) throw new Error("ce jeton n'a pas le droit d'écrire dans ce dépôt (Contents : Read and write)");
+      await loadAll();
+      try { if ($("g_remember").checked) localStorage.setItem("ochane-admin-gh", JSON.stringify({ repo: $("g_repo").value.trim(), branch: GH.branch, token: tk })); else localStorage.removeItem("ochane-admin-gh"); } catch (e) { }
+      enter("GitHub " + GH.owner + "/" + GH.repo + "@" + GH.branch);
+    } catch (e) { mode = "fs"; setStatus("Connexion impossible : " + e.message); }
+  };
+  $("bOpen2").onclick = async function () {
+    if (!window.showDirectoryPicker) { setStatus("Navigateur non compatible : utilise Chrome, Edge ou Brave sur ordinateur."); return; }
+    try {
+      dir = await window.showDirectoryPicker({ mode: "readwrite" });
+      await loadAll();
+      mode = "fs"; enter(dir.name);
+    } catch (e) { if (e.name !== "AbortError") setStatus("Erreur : " + e.message); }
+  };
+  $("q").addEventListener("input", renderList); $("fil").addEventListener("change", renderList);
+  window.addEventListener("beforeunload", function (ev) { if (dirty) { ev.preventDefault(); ev.returnValue = ""; } });
+})();
+</script>
+</body>
+</html>
