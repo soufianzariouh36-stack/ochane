@@ -46,8 +46,7 @@ window.OCHANE_DETAILS = {
     },
     tip: "Achète ton e-billet à l'avance : il est nominatif et une pièce d'identité est demandée pour chaque personne, enfants compris. Compte 10 à 20 minutes de contrôle de sécurité avant d'atteindre le parvis. Réserve tôt de juin à septembre, pendant les vacances scolaires et les jours fériés.",
     photo: { src: "img/places/tour-eiffel.jpg", alt: "Tour Eiffel, Paris", credit: "Gerd Eichmann", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Paris-Tour_Eiffel-106-2017-gje.jpg" },
-    sources: ["https://www.toureiffel.paris/fr/tarifs-horaires", "https://www.toureiffel.paris/fr/plan-acces", "https://www.toureiffel.paris/fr/bien-preparer-votre-visite", "https://ticket.toureiffel.paris/fr"],
-    todo: ["Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."]
+    sources: ["https://www.toureiffel.paris/fr/tarifs-horaires", "https://www.toureiffel.paris/fr/plan-acces", "https://www.toureiffel.paris/fr/bien-preparer-votre-visite", "https://ticket.toureiffel.paris/fr"]
   },
 
   "1|Musée du Louvre": {
@@ -84,7 +83,7 @@ window.OCHANE_DETAILS = {
     tip: "Pour profiter de la nocturne, viens le mercredi ou le vendredi : le musée ferme à 21 h. Réserve un créneau en ligne et présente-toi à la Pyramide à l'heure choisie.",
     photo: { src: "img/places/musee-du-louvre.jpg", alt: "Musée du Louvre vu depuis le jardin des Tuileries", credit: "DiscoA340", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Louvre_Museum_from_the_Tuileries_Garden.jpg" },
     sources: ["https://www.louvre.fr/en/visit/hours-admission", "https://www.louvre.fr/en/visit", "https://www.louvre.fr/en/visit/accessibility", "https://contact.louvre.fr/hc/fr/articles/12846022972829-Comment-venir-au-mus%C3%A9e"],
-    todo: ["Le site officiel ne donne pas d'adresse postale unique : Passage Richelieu « rue de Rivoli, 75001 », Carrousel « 99 rue de Rivoli, 75001 », Porte des Lions « quai François Mitterrand, 75001 ».", "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."]
+    todo: ["Le site officiel ne donne pas d'adresse postale unique : Passage Richelieu « rue de Rivoli, 75001 », Carrousel « 99 rue de Rivoli, 75001 », Porte des Lions « quai François Mitterrand, 75001 »."]
   },
 
   "4|Cathédrale Notre-Dame": {
@@ -156,8 +155,7 @@ window.OCHANE_DETAILS = {
     todo: [
       "Station de métro la plus pratique : non indiquée sur les pages officielles lues, donc non affichée.",
       "Heure de fin de l'accès ascenseur : 19 h sur la page française, 18 h 30 sur la page anglaise (contradiction) : seule l'heure d'ouverture, 8 h 30, est certaine et n'est pas affichée non plus.",
-      "Horaires du dôme : la page parle de 10 h 15 – 17 h 30 « selon la saison » sans détail saisonnier.",
-      "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."
+      "Horaires du dôme : la page parle de 10 h 15 – 17 h 30 « selon la saison » sans détail saisonnier."
     ]
   },
 
@@ -194,8 +192,7 @@ window.OCHANE_DETAILS = {
     photo: { src: "img/places/arc-de-triomphe.jpg", alt: "Arc de Triomphe, Paris", credit: "Dharshini Vinayagam", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Arc_de_Triomphe_paris_france.jpg" },
     sources: ["https://www.paris-arc-de-triomphe.fr/en/visit/practical-information"],
     todo: [
-      "La page officielle indique à la fois « ascenseur en maintenance jusqu'à nouvel ordre » et « ascenseur disponible sans réservation » : contradiction, seule la maintenance est affichée.",
-      "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."
+      "La page officielle indique à la fois « ascenseur en maintenance jusqu'à nouvel ordre » et « ascenseur disponible sans réservation » : contradiction, seule la maintenance est affichée."
     ]
   },
 
@@ -233,6 +230,6 @@ window.OCHANE_DETAILS = {
     tip: "Le jeudi soir est la nocturne : billet à 12 € en ligne à partir de 18 h, et le musée reste ouvert jusqu'à 21 h 45. Le 1er dimanche du mois, la réservation en ligne est obligatoire.",
     photo: { src: "img/places/musee-d-orsay.jpg", alt: "Façade du musée d'Orsay", credit: "DiscoA340", license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/", source: "https://commons.wikimedia.org/wiki/File:Front_view_of_the_Mus%C3%A9e_d%27Orsay.jpg" },
     sources: ["https://www.musee-orsay.fr/en/visit/admission-opening-times-tickets", "https://www.musee-orsay.fr/en/articles/getting-museum-296243", "https://www.musee-orsay.fr/en/visit"],
-    todo: ["Liste complète des gratuités : la page n'en détaille qu'une partie, seules celles citées sont affichées.", "Photo : fichier à déposer dans img/places/ ; licence vérifiée par Soufian sur la page Wikimedia Commons."]
+    todo: ["Liste complète des gratuités : la page n'en détaille qu'une partie, seules celles citées sont affichées."]
   }
 };

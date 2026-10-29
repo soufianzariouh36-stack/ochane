@@ -201,6 +201,8 @@ table { border-radius:12px; }
 .okx { font-weight:650; color:var(--green); } .nox { font-weight:650; color:var(--red); }
 @media (max-width:1250px) { .cards.six { grid-template-columns:repeat(3,minmax(0,1fr)); } .row3 { grid-template-columns:1fr 1fr; } }
 @media (max-width:900px) { .cards.six { grid-template-columns:repeat(2,minmax(0,1fr)); } .row3 { grid-template-columns:1fr; } .hero { margin:0 -14px 16px; padding:22px 18px; } .hero h2 { font-size:1.5rem; } .hero svg { opacity:.25; } .pill, .tsw { display:none; } .sbox { max-width:none; } .icb { width:36px; height:36px; } #bAdd { font-size:0; padding:10px; } #bAdd svg { width:18px; height:18px; } .sbox { min-width:0; flex:1 1 auto; } #top { padding:10px 12px; gap:8px; } #av2 { display:none; } }
+#modal { position:fixed; inset:0; background:rgba(5,12,24,.6); z-index:80; display:grid; place-items:center; padding:16px; overflow:auto; }
+.mbox { background:var(--panel); border-radius:16px; padding:22px; width:min(560px,100%); }
 </style>
 </head>
 <body>
@@ -244,13 +246,14 @@ table { border-radius:12px; }
       <div class="sbox"><span id="sico"></span><input id="gq" type="search" placeholder="Rechercher un lieu, une adresse, un quartier…" autocomplete="off"></div>
       <span class="pill" id="citypill"></span>
       <button class="tsw" id="bTheme" aria-label="Thème clair / sombre"><span class="s">☀</span><span class="m">☾</span></button>
-      <button id="bAdd" title="Les lieux sont encore dans index.html : l'ajout viendra avec la migration vers Supabase"></button>
+      <button id="bAdd" title="Ajouter un lieu"></button>
       <button class="ib" id="bBell" title="Fiches à vérifier"></button>
       <span class="av" id="av2" style="width:38px;height:38px">A</span>
     </div>
     <div id="content"></div>
   </div>
 </div>
+<div id="modal" class="hidden"></div>
 <div id="toast" class="hidden"></div>
 
 <script>
@@ -260,7 +263,7 @@ table { border-radius:12px; }
   var CFG = window.OCHANE_CONFIG || {}, SB = { access: "", refresh: "", email: "" };
   var CATS = { r: "Restaurant", s: "Soirée", m: "Monument ou musée", h: "Hôtel", a: "Activité", b: "Boutique" };
   var PER = 50, STALE_DAYS = 180;
-  var PLACES = [], DET = {}, META = {}, histOK = true, saving = false, dirty = false;
+  var PLACES = [], DET = {}, META = {}, OVR = {}, OMETA = {}, ovOK = true, BASE = [], histOK = true, saving = false, dirty = false;
   var S = { view: "dash", cat: "all", f: "all", q: "", sort: "name", page: 0, cur: null, tab: "info", pvw: "desk" };
   var photoBlob = null, histRows = null;
 
@@ -305,12 +308,27 @@ table { border-radius:12px; }
   }
   async function loadAll() {
     var html = await (await fetch("../index.html", { cache: "no-store" })).text();
-    var a = extractArr(html); PLACES = [];
-    a.forEach(function (g) { g.items.forEach(function (it) { PLACES.push({ arr: g.n, kind: it[0], name: it[1], q: g.q, metro: it[4] || "", desc: it[3] || "" }); }); });
-    var w = {}; try { (new Function("window", await (await fetch("../data/place-details.js", { cache: "no-store" })).text()))(w); } catch (e) { }
+    var a = extractArr(html); BASE = [];
+    a.forEach(function (g) { g.items.forEach(function (it) { BASE.push({ id: "p" + hash(g.n + "|" + it[1]), arr: g.n, kind: it[0], name: it[1], q: g.q, price: it[2] || "", desc: it[3] || "", metro: it[4] || "", base: true }); }); });
+    window.__ARRQ = {}; a.forEach(function (g) { window.__ARRQ[g.n] = g.q; });
+    var w = {}; try { (new Function("window", await (await fetch("../data/place-photos.js", { cache: "no-store" })).text()))(w); } catch (e) { }
+    try { (new Function("window", await (await fetch("../data/place-details.js", { cache: "no-store" })).text()))(w); } catch (e) { }
     DET = w.OCHANE_DETAILS || {}; META = {};
     var rows = await (await sb("/rest/v1/place_details?select=key,data,updated_at")).json();
     rows.forEach(function (r) { META[r.key] = { updated_at: r.updated_at }; if (r.data && r.data._deleted) delete DET[r.key]; else if (r.data) DET[r.key] = r.data; });
+    Object.keys(w.OCHANE_PLACE_PHOTOS || {}).forEach(function (k) {
+      if (!DET[k]) DET[k] = { photo: w.OCHANE_PLACE_PHOTOS[k] };
+      else if (!DET[k].photo) DET[k].photo = w.OCHANE_PLACE_PHOTOS[k];
+    });
+    OVR = {}; OMETA = {}; ovOK = true;
+    try { (await (await sb("/rest/v1/place_overrides?select=id,data,updated_at")).json()).forEach(function (r) { OMETA[r.id] = { updated_at: r.updated_at }; if (r.data && !r.data._deleted) OVR[r.id] = r.data; }); } catch (e) { ovOK = false; }
+    buildPlaces();
+  }
+  function hash(s) { var h = 5381; for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+  function buildPlaces() {
+    PLACES = [];
+    BASE.forEach(function (b) { var o = OVR[b.id] || {}; PLACES.push({ id: b.id, base: true, arr: b.arr, q: b.q, name: b.name, kind: o.cat || b.kind, price: o.price !== undefined ? o.price : b.price, desc: o.desc !== undefined ? o.desc : b.desc, metro: o.metro !== undefined ? o.metro : b.metro, hidden: !!o.hidden, edited: !!OVR[b.id] }); });
+    Object.keys(OVR).forEach(function (id) { var o = OVR[id]; if (!o.added || !o.name || !CATS[o.cat] || !(+o.arr >= 1 && +o.arr <= 20)) return; PLACES.push({ id: id, base: false, arr: +o.arr, q: window.__ARRQ[+o.arr] || "", name: o.name, kind: o.cat, price: o.price || "", desc: o.desc || "", metro: o.metro || "", hidden: !!o.hidden, edited: true }); });
     PLACES.forEach(function (p) { p.k = key(p); p.hay = norm(p.name + " " + p.q + " " + ordn(p.arr) + " arrondissement " + p.metro + " " + ((DET[p.k] || {}).address || "")); });
   }
   function rsrc(src) { return /^https?:/.test(src || "") ? src : (src ? "../" + src : ""); }
@@ -358,14 +376,14 @@ table { border-radius:12px; }
   function render() { var c = $("content"); if (S.view === "dash") dash(c); else if (S.view === "list") list(c); else if (S.view === "verif") verif(c); else if (S.view === "edit") editor(c); counts(); }
   function counts() {
     var n = { all: 0, r: 0, m: 0, h: 0, sa: 0, b: 0 }, v = 0;
-    PLACES.forEach(function (p) { n.all++; if (p.kind === "s" || p.kind === "a") n.sa++; else n[p.kind]++; var i = info(p); if (i.fiche && (i.ver === "toverify" || i.stale)) v++; });
+    PLACES.forEach(function (p) { if (p.hidden) return; n.all++; if (p.kind === "s" || p.kind === "a") n.sa++; else n[p.kind]++; var i = info(p); if (i.fiche && (i.ver === "toverify" || i.stale)) v++; });
     Object.keys(n).forEach(function (k) { $("n-" + k).textContent = n[k]; }); $("n-verif").textContent = v || "";
   }
 
   /* ---------- tableau de bord ---------- */
   function dash(c) {
-    var t = PLACES.length, full = 0, nophoto = 0, tov = 0, pub = 0, nofiche = 0, stale = 0, drafts = 0, noPhotoFiche = 0, missEss = 0, inc = 0;
-    PLACES.forEach(function (p) {
+    var VIS = PLACES.filter(function (p) { return !p.hidden; }), t = VIS.length, full = 0, nophoto = 0, tov = 0, pub = 0, nofiche = 0, stale = 0, drafts = 0, noPhotoFiche = 0, missEss = 0, inc = 0;
+    VIS.forEach(function (p) {
       var i = info(p); if (!i.fiche) { nofiche++; nophoto++; return; }
       if (i.complete) full++; else { inc++; missEss++; }
       if (!i.photo) { nophoto++; noPhotoFiche++; } if (i.ver === "toverify" || i.ver === "unverified") tov++; if (i.stale) stale++;
@@ -398,11 +416,11 @@ table { border-radius:12px; }
   }
 
   /* ---------- liste ---------- */
-  var FILTERS = [["all", "Tous"], ["complete", "Fiches complètes"], ["incomplete", "Fiches incomplètes"], ["tocomplete", "À compléter (avec ou sans fiche)"], ["nofiche", "Sans fiche"], ["nophoto", "Sans photo"], ["nophoto-fiche", "Fiche sans photo"], ["draft", "Brouillons"], ["published", "Publiés"], ["archived", "Archivés"], ["toverify", "À vérifier"], ["stale", "Vérification ancienne"]];
+  var FILTERS = [["all", "Tous"], ["complete", "Fiches complètes"], ["incomplete", "Fiches incomplètes"], ["tocomplete", "À compléter (avec ou sans fiche)"], ["nofiche", "Sans fiche"], ["nophoto", "Sans photo"], ["nophoto-fiche", "Fiche sans photo"], ["draft", "Brouillons"], ["published", "Publiés"], ["archived", "Archivés"], ["hidden", "Lieux masqués"], ["toverify", "À vérifier"], ["stale", "Vérification ancienne"]];
   var SORTS = [["name", "Alphabétique"], ["cat", "Catégorie"], ["arr", "Arrondissement"], ["mod", "Dernière modification"], ["ver", "Date de vérification"], ["pct", "Niveau de complétude"]];
   function match(p, i) {
     if (S.cat !== "all" && !(S.cat === "sa" ? (p.kind === "s" || p.kind === "a") : p.kind === S.cat)) return false;
-    var f = S.f;
+    var f = S.f; if (f === "hidden") { if (!p.hidden) return false; } else if (p.hidden && f !== "all" && f !== "nofiche" && f !== "nophoto") return false;
     if (f === "complete" && !i.complete) return false; if (f === "tocomplete" && i.complete) return false; if (f === "incomplete" && !(i.fiche && !i.complete)) return false;
     if (f === "nofiche" && i.fiche) return false; if (f === "nophoto" && i.photo) return false; if (f === "nophoto-fiche" && !(i.fiche && !i.photo)) return false;
     if (f === "draft" && i.status !== "draft") return false; if (f === "published" && i.status !== "published") return false; if (f === "archived" && i.status !== "archived") return false;
@@ -424,20 +442,21 @@ table { border-radius:12px; }
   function ibtn(a, v, k, icon, title, cls) { return '<button class="icb ' + (cls || "") + '" data-' + a + '="' + esc(k) + '" title="' + title + '" aria-label="' + title + '">' + ic(icon) + '</button>'; }
   function rowHtml(r) {
     var p = r.p, i = r.i, ph = i.photo ? rsrc(i.d.photo.src) : "", stx;
-    if (i.status === "archived") stx = chip("Archivée", "mut"); else if (i.status === "draft") stx = chip("Brouillon", "warn"); else if (i.fiche && i.complete) stx = chip("Complète", "ok"); else stx = chip("À compléter", "warn");
+    if (p.hidden) stx = chip("Masqué", "mut"); else if (i.status === "archived") stx = chip("Archivée", "mut"); else if (i.status === "draft") stx = chip("Brouillon", "warn"); else if (i.fiche && i.complete) stx = chip("Complète", "ok"); else stx = chip("À compléter", "warn");
     var vr = VER[i.ver];
     return '<tr class="row"><td>' + (ph ? '<img class="thumb" loading="lazy" decoding="async" alt="" src="' + esc(ph) + '" onerror="this.outerHTML=\'<span class=&quot;thumb ph&quot;>photo</span>\'">' : '<span class="thumb ph">—</span>') + '</td>' +
       '<td><span class="nm" data-e="' + esc(p.k) + '">' + esc(p.name) + '</span></td><td>' + catTag(p.kind) + '</td><td>' + ordn(p.arr) + '</td>' +
       '<td>' + stx + (i.fiche ? ' <small style="color:var(--muted)">' + i.pct + ' %</small>' : '') + '</td>' +
       '<td>' + (i.photo ? '<span class="okx">✓ Oui</span>' : '<span class="nox">✕ Non</span>') + '</td>' +
       '<td>' + (i.fiche ? (i.d.verified ? fmtDate(i.d.verified) : chip(vr[0], vr[1])) : "—") + '</td>' +
-      '<td><div class="acts">' + (i.fiche ? ibtn("pv", 0, p.k, "eye", "Aperçu") : "") + ibtn("e", 0, p.k, "edit", "Modifier") + '<button class="icb" disabled title="Bientôt : duplication de lieu" aria-label="Dupliquer">' + ic("copy") + '</button>' +
+      '<td><div class="acts">' + (i.fiche ? ibtn("pv", 0, p.k, "eye", "Aperçu") : "") + ibtn("e", 0, p.k, "edit", "Modifier") + '<button class="icb" data-dup="' + esc(p.k) + '" title="Dupliquer ce lieu" aria-label="Dupliquer">' + ic("copy") + '</button>' +
       (i.fiche ? ibtn("ar", 0, p.k, "arch", i.status === "archived" ? "Restaurer la fiche" : "Archiver la fiche (réversible)") + ibtn("rm", 0, p.k, "trash", "Supprimer la fiche", "bad") : "") + '</div></td></tr>';
   }
   function bindRows(root) {
     var byK = {}; PLACES.forEach(function (p) { byK[p.k] = p; });
     root.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.e]); }; });
     root.querySelectorAll("[data-pv]").forEach(function (b) { b.onclick = function () { openEdit(byK[b.dataset.pv], "prev"); }; });
+    root.querySelectorAll("[data-dup]").forEach(function (b) { b.onclick = function () { openAdd(byK[b.dataset.dup]); }; });
     root.querySelectorAll("[data-ar]").forEach(function (b) { b.onclick = function () { archive(byK[b.dataset.ar]); }; });
     root.querySelectorAll("[data-rm]").forEach(function (b) { b.onclick = function () { remove(byK[b.dataset.rm]); }; });
   }
@@ -486,6 +505,68 @@ table { border-radius:12px; }
       META[k] = { updated_at: now };
     } finally { saving = false; }
   }
+  async function putOverride(id, data) {
+    if (!ovOK) throw new Error("La table place_overrides n'existe pas encore : exécute admin/supabase-places.sql dans Supabase (SQL Editor).");
+    if (saving) throw new Error("Un enregistrement est déjà en cours.");
+    saving = true;
+    try {
+      var cur = await (await sb("/rest/v1/place_overrides?id=eq." + encodeURIComponent(id) + "&select=updated_at")).json();
+      var remote = cur[0] ? cur[0].updated_at : null, mine = OMETA[id] ? OMETA[id].updated_at : null;
+      if (remote !== mine) throw new Error("Ce lieu a été modifié ailleurs entre-temps. Recharge la page pour récupérer la dernière version.");
+      var now = new Date().toISOString();
+      await sb("/rest/v1/place_overrides", { method: "POST", headers: { "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify([{ id: id, data: data, updated_at: now }]) });
+      OMETA[id] = { updated_at: now }; if (data._deleted) delete OVR[id]; else OVR[id] = data;
+      var curId = S.cur && S.cur.id; buildPlaces(); if (curId) S.cur = PLACES.filter(function (p) { return p.id === curId; })[0] || null;
+    } finally { saving = false; }
+  }
+  var PRICES = ["", "Gratuit", "€", "€€", "€€€", "Payant"];
+  function arrOptions(sel) { var o = ""; for (var n = 1; n <= 20; n++) o += '<option value="' + n + '"' + (+sel === n ? " selected" : "") + '>' + ordn(n) + ' · ' + esc(window.__ARRQ[n] || "") + '</option>'; return o; }
+  function catOptions(sel) { return Object.keys(CATS).map(function (k) { return '<option value="' + k + '"' + (sel === k ? " selected" : "") + '>' + CATS[k] + '</option>'; }).join(""); }
+  function priceOptions(sel) { return PRICES.map(function (x) { return '<option value="' + esc(x) + '"' + (sel === x ? " selected" : "") + '>' + (x || "— non précisé —") + '</option>'; }).join(""); }
+  function openAdd(from) {
+    var m = $("modal"); from = from || {};
+    m.innerHTML = '<div class="mbox"><h2 style="margin:0 0 4px">' + (from.name ? "Dupliquer un lieu" : "Ajouter un lieu") + '</h2><p class="sub" style="margin:0">Le nouveau lieu apparaît tout de suite sur ochane.com. Sa fiche détaillée se complète ensuite.</p>' +
+      '<label for="a_name">Nom du lieu *</label><input id="a_name" type="text" placeholder="' + (from.name ? "Nouveau nom (différent de " + esc(from.name) + ")" : "") + '">' +
+      '<div class="g2"><div><label for="a_cat">Catégorie *</label><select id="a_cat">' + catOptions(from.kind || "r") + '</select></div><div><label for="a_arr">Arrondissement *</label><select id="a_arr">' + arrOptions(from.arr || 1) + '</select></div></div>' +
+      '<div class="g2"><div><label for="a_price">Prix</label><select id="a_price">' + priceOptions(from.price || "") + '</select></div><div><label for="a_metro">Métro / quartier</label><input id="a_metro" type="text" value="' + esc(from.metro || "") + '"></div></div>' +
+      '<label for="a_desc">Description pour les listes</label><textarea id="a_desc">' + esc(from.desc || "") + '</textarea><div id="a_err" class="miss" style="color:var(--bad)"></div>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button id="a_cancel">Annuler</button><button id="a_ok" class="pri">Créer le lieu</button></div></div>';
+    m.classList.remove("hidden");
+    $("a_cancel").onclick = function () { m.classList.add("hidden"); };
+    $("a_ok").onclick = async function () {
+      var name = $("a_name").value.trim(), arrn = +$("a_arr").value, cat = $("a_cat").value;
+      if (!name) { $("a_err").textContent = "Le nom est obligatoire."; return; }
+      if (PLACES.some(function (p) { return p.arr === arrn && norm(p.name) === norm(name); })) { $("a_err").textContent = "Ce lieu existe déjà dans cet arrondissement."; return; }
+      var id = "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), data = { added: true, arr: arrn, cat: cat, name: name };
+      if ($("a_price").value) data.price = $("a_price").value; if ($("a_metro").value.trim()) data.metro = $("a_metro").value.trim(); if ($("a_desc").value.trim()) data.desc = $("a_desc").value.trim();
+      this.disabled = true;
+      try { await putOverride(id, data); m.classList.add("hidden"); toast("Lieu créé et visible sur ochane.com."); var np = PLACES.filter(function (p) { return p.id === id; })[0]; dirty = false; if (np) openEdit(np); else render(); }
+      catch (e) { this.disabled = false; $("a_err").textContent = "Échec : " + e.message; }
+    };
+    $("a_name").focus();
+  }
+  async function deletePlace(p) {
+    if (p.base) return;
+    if (!confirm("Supprimer définitivement le lieu « " + p.name + " » et sa fiche ?\n\nIl disparaîtra du site. (Pour un lieu d'origine, utilise plutôt « Masquer ».)")) return;
+    try {
+      if (DET[p.k]) { await upsert(p.k, { _deleted: true }); delete DET[p.k]; }
+      await putOverride(p.id, { _deleted: true }); dirty = false; toast("Lieu supprimé."); go("list");
+    } catch (e) { toast("Échec : " + e.message, true); }
+  }
+  /* champs "lieu" modifiés dans l'onglet Informations -> données à enregistrer dans place_overrides */
+  function buildOverride() {
+    var p = S.cur, F = FORM[p.k] || {}, o = Object.assign({}, OVR[p.id] || {}), b = p.base ? BASE.filter(function (x) { return x.id === p.id; })[0] : null;
+    function setF(name, v, baseV) { if (b && v === baseV) delete o[name]; else o[name] = v; }
+    if ("p_cat" in F) setF("cat", F.p_cat, b && b.kind);
+    if ("p_price" in F) setF("price", F.p_price, b && b.price);
+    if ("p_metro" in F) setF("metro", F.p_metro.trim(), b && b.metro);
+    if ("p_desc" in F) setF("desc", F.p_desc.trim(), b && b.desc);
+    if ("p_hidden" in F) { if (F.p_hidden === "1") o.hidden = true; else delete o.hidden; }
+    if (!b) { ["price", "metro", "desc"].forEach(function (k) { if (o[k] === "") delete o[k]; }); }
+    var prev = JSON.stringify(OVR[p.id] || {}), keys = Object.keys(o);
+    if (b && !keys.length) return { changed: !!OVR[p.id], data: { _deleted: true } };
+    return { changed: JSON.stringify(o) !== prev, data: o };
+  }
   async function archive(p) {
     var d = Object.assign({}, DET[p.k]); if (d.archived) delete d.archived; else d.archived = true;
     try { await upsert(p.k, d); DET[p.k] = d; toast(d.archived ? "Fiche archivée (réversible)." : "Fiche restaurée."); render(); } catch (e) { toast("Échec : " + e.message, true); }
@@ -506,9 +587,9 @@ table { border-radius:12px; }
     var p = S.cur, d = DET[p.k] || {}, i = info(p), st = STAT[i.status];
     c.innerHTML = '<div id="edbar"><button class="ghost" id="eBack">← Retour</button><div class="ttl"><h2>' + esc(p.name) + ' <span id="dd" class="dirtydot hidden">●</span></h2><small>' + CATS[p.kind] + ' · ' + ordn(p.arr) + ' · ' + esc(p.q) + ' · dernière modification : ' + (META[p.k] ? ago(META[p.k].updated_at) : "—") + '</small></div>' +
       chip(st[0], st[1]) + ' <span class="chip mut" id="pct">Complétude ' + i.pct + ' %</span>' +
-      '<button id="eSave" class="pri">Enregistrer</button></div>' +
+      (!p.base ? '<button id="ePlaceDel" class="bad">Supprimer ce lieu</button>' : '') + '<button id="eSave" class="pri">Enregistrer</button></div>' +
       '<div class="tabs">' + TABS.map(function (t) { return '<button class="tab' + (S.tab === t[0] ? " on" : "") + '" data-t="' + t[0] + '">' + t[1] + '</button>'; }).join("") + '</div><div id="pane"></div>';
-    $("eBack").onclick = function () { go("list"); }; $("eSave").onclick = save;
+    $("eBack").onclick = function () { go("list"); }; $("eSave").onclick = save; if ($("ePlaceDel")) $("ePlaceDel").onclick = function () { deletePlace(p); };
     c.querySelectorAll(".tab").forEach(function (b) { b.onclick = function () { collect(); S.tab = b.dataset.t; editor(c); if (dirty) $("dd").classList.remove("hidden"); }; });
     pane(); if (dirty) $("dd").classList.remove("hidden");
   }
@@ -527,7 +608,12 @@ table { border-radius:12px; }
     function T(id, def, label, ph, type, hint) { return fld("f_" + id, label, '<input data-f="' + id + '" type="' + (type || "text") + '" id="f_' + id + '" value="' + esc(F(id, def)) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : "") + '>', hint); }
     var t = S.tab, o = "";
     if (t === "info") {
-      o = '<div class="panel">' + A("summary", d.summary, "(utile, sans texte touristique générique)", "Description courte") + T("address", d.address, "Adresse complète") +
+      var bs = p.base ? BASE.filter(function (x) { return x.id === p.id; })[0] : {};
+      o = (ovOK ? '<div class="panel" style="margin-bottom:12px"><h3>Le lieu dans les listes du site</h3><div class="g2"><div>' + fld("f_p_cat", "Catégorie", '<select data-f="p_cat" id="f_p_cat">' + catOptions(F("p_cat", p.kind)) + '</select>') + '</div><div>' + fld("f_p_price", "Prix", '<select data-f="p_price" id="f_p_price">' + priceOptions(F("p_price", p.price)) + '</select>') + '</div></div>' +
+        T("p_metro", p.metro, "Métro / quartier (liste)") + A("p_desc", p.desc, "(texte affiché sur la carte du lieu)", "Description de la liste", 70) +
+        fld("f_p_hidden", "Visibilité sur le site", '<select data-f="p_hidden" id="f_p_hidden"><option value="0"' + (F("p_hidden", p.hidden ? "1" : "0") !== "1" ? " selected" : "") + '>Visible</option><option value="1"' + (F("p_hidden", p.hidden ? "1" : "0") === "1" ? " selected" : "") + '>Masqué (retiré du site, réversible)</option></select>') +
+        '<p class="miss" style="color:var(--muted)">Le nom et l\'arrondissement ne se changent pas (ils identifient le lieu et ses favoris). Pour corriger un nom : crée un nouveau lieu et masque l\'ancien.</p></div>' : '<div class="panel miss" style="margin-bottom:12px">Pour modifier les lieux eux-mêmes (ajout, masquage, prix, description de liste), exécute <code>admin/supabase-places.sql</code> dans Supabase.</div>') +
+        '<div class="panel">' + A("summary", d.summary, "(utile, sans texte touristique générique)", "Description courte") + T("address", d.address, "Adresse complète") +
         '<div class="g2"><div>' + fld("f_q", "Arrondissement", '<input disabled value="' + ordn(p.arr) + ' arrondissement">') + '</div><div>' + fld("f_q2", "Quartier", '<input disabled value="' + esc(p.q) + '">') + '</div></div>' +
         '<div class="g2"><div>' + fld("f_status", "Statut de publication", '<select data-f="status" id="f_status"><option value="published"' + (F("status", d.status || "published") !== "draft" ? " selected" : "") + '>Publiée</option><option value="draft"' + (F("status", d.status) === "draft" ? " selected" : "") + '>Brouillon (non affichée au public)</option></select>') + '</div><div></div></div></div>' +
         '<div class="panel" style="margin-top:12px"><h3>Vérification</h3><div class="g2"><div>' + fld("f_verification", "Statut de vérification", '<select data-f="verification" id="f_verification">' + [["unverified", "Non vérifiée"], ["toverify", "À vérifier"], ["verified", "Vérifiée"]].map(function (x) { return '<option value="' + x[0] + '"' + (F("verification", d.verification || (d.verified ? "verified" : "unverified")) === x[0] ? " selected" : "") + '>' + x[1] + '</option>'; }).join("") + '</select>') + '</div><div>' + T("verified", d.verified, "Date de dernière vérification", "", "date", "(à saisir toi-même)") + '</div></div>' +
@@ -593,22 +679,30 @@ table { border-radius:12px; }
   function badUrl(u) { return u && !/^https:\/\/[^\s]+$/i.test(u); }
   async function save() {
     collect(); var p = S.cur, e = buildEntry(), errs = [];
-    ["site", "tickets", "booking", "menu"].forEach(function (f) { if (badUrl(e[f])) errs.push("Lien invalide (https requis) : " + f); });
-    if (e.photo && (badUrl(e.photo.licenseUrl) || badUrl(e.photo.source))) errs.push("Photo : liens de licence/source invalides (https requis).");
-    if (e.photo && (!e.photo.credit || !e.photo.license)) errs.push("Photo : l'auteur et la licence sont obligatoires.");
-    if (e.photo && !e.photo.alt) errs.push("Photo : texte alternatif obligatoire.");
-    if (e.tickets && !e.site) errs.push("Billets : renseigne aussi le site officiel.");
-    if (!Object.keys(e).length) errs.push("Fiche vide.");
+    var od = ovOK ? buildOverride() : { changed: false };
+    var entryChanged = !!photoBlob || JSON.stringify(e) !== JSON.stringify(DET[p.k] || {});
+    if (!entryChanged && !od.changed) { toast("Aucune modification à enregistrer."); return; }
+    if (entryChanged) {
+      ["site", "tickets", "booking", "menu"].forEach(function (f) { if (badUrl(e[f])) errs.push("Lien invalide (https requis) : " + f); });
+      if (e.photo && (badUrl(e.photo.licenseUrl) || badUrl(e.photo.source))) errs.push("Photo : liens de licence/source invalides (https requis).");
+      if (e.photo && (!e.photo.credit || !e.photo.license)) errs.push("Photo : l'auteur et la licence sont obligatoires.");
+      if (e.photo && !e.photo.alt) errs.push("Photo : texte alternatif obligatoire.");
+      if (e.tickets && !e.site) errs.push("Billets : renseigne aussi le site officiel.");
+      if (!Object.keys(e).length) errs.push("Fiche vide.");
+    }
     if (errs.length) { toast(errs.join(" "), true); return; }
     var btn = $("eSave"); btn.disabled = true; btn.textContent = "Enregistrement…";
     try {
+      if (od.changed) { await putOverride(p.id, od.data); p = S.cur; }
+      if (entryChanged) {
       if (photoBlob) {
         var nm = slug(p.name) + "-" + Date.now().toString(36) + ".jpg";
         await sb("/storage/v1/object/place-photos/" + nm, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: photoBlob });
         e.photo.src = CFG.supabaseUrl + "/storage/v1/object/public/place-photos/" + nm;
       }
       await upsert(p.k, e);
-      DET[p.k] = e; photoBlob = null; delete FORM[p.k]; dirty = false;
+      DET[p.k] = e; }
+      photoBlob = null; delete FORM[p.k]; dirty = false;
       p.hay = norm(p.name + " " + p.q + " " + ordn(p.arr) + " arrondissement " + p.metro + " " + (e.address || ""));
       toast("Enregistré. Visible sur ochane.com."); editor($("content")); counts();
     } catch (x) { toast("Échec de l'enregistrement : " + x.message + " Tes modifications sont conservées dans le formulaire.", true); btn.disabled = false; btn.textContent = "Enregistrer"; }
@@ -672,7 +766,7 @@ table { border-radius:12px; }
   $("bOut").onclick = function () { try { localStorage.removeItem("ochane-admin-sb"); } catch (e) { } location.reload(); };
   $("burger").onclick = function () { $("side").classList.toggle("open"); };
   document.querySelectorAll(".nav[data-v]").forEach(function (b) { b.onclick = function () { go(b.dataset.v, b.dataset.v === "list" ? { cat: b.dataset.cat, f: "all", q: "", page: 0 } : {}); }; });
-  $("bAdd").onclick = function () { toast("Bientôt : l'ajout de lieux arrive avec la migration des lieux vers Supabase."); };
+  $("bAdd").onclick = function () { openAdd(); };
   $("bBell").onclick = function () { go("verif"); };
   var gt; $("gq").addEventListener("input", function () { var v = this.value; clearTimeout(gt); gt = setTimeout(function () { if (S.view !== "list") go("list", { cat: "all", f: "all", q: v, page: 0 }); else { S.q = v; S.page = 0; list($("content")); } }, 200); });
   function theme(m) { document.documentElement.setAttribute("data-theme", m); try { localStorage.setItem("ochane-admin-theme", m); } catch (e) { } }

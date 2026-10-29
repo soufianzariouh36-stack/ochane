@@ -1,4 +1,4 @@
--- Ochane Admin v2 : historique des modifications. À exécuter une fois dans Supabase > SQL Editor.
+-- Ochane Admin v2 : historique des modifications. Exécuter supabase-setup.sql avant ce fichier.
 create table if not exists public.place_history (
   id bigint generated always as identity primary key,
   key text not null,
@@ -8,6 +8,8 @@ create table if not exists public.place_history (
 create index if not exists place_history_key_idx on public.place_history (key, saved_at desc);
 alter table public.place_history enable row level security;
 drop policy if exists "historique lecture admin" on public.place_history;
-create policy "historique lecture admin" on public.place_history for select to authenticated using (true);
+create policy "historique lecture admin" on public.place_history for select to authenticated
+using (public.is_ochane_admin());
 drop policy if exists "historique ajout admin" on public.place_history;
-create policy "historique ajout admin" on public.place_history for insert to authenticated with check (true);
+create policy "historique ajout admin" on public.place_history for insert to authenticated
+with check (public.is_ochane_admin());

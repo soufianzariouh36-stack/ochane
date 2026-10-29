@@ -6,7 +6,7 @@
 <title>Ochane · Paris</title>
 <meta name="description" content="Ochane : le guide visuel des villes, quartier par quartier. Restaurants, monuments, hôtels, sorties, boutiques, agenda et parcours.">
 <meta name="theme-color" content="#0D2B52">
-<meta name="ochane-build" content="2026-10-16-fiches-monuments-v4">
+<meta name="ochane-build" content="2026-10-29-photos-lieux-v5">
 <meta property="og:title" content="Ochane">
 <meta property="og:description" content="Le guide visuel des villes, quartier par quartier.">
 <meta property="og:type" content="website">
@@ -636,6 +636,7 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
 </nav></div>
 
 <script src="vendor/leaflet.js"></script>
+<script src="data/place-photos.js"></script>
 <script src="data/place-details.js"></script>
 <script src="data/ochane-config.js"></script>
 <script>
@@ -647,8 +648,9 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   var ORDER = ["r", "s", "m", "h", "a", "b"];
   var TIERS = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget élevé" };
 
-  // Photos : nom du lieu -> fichier publié avec la page, par exemple "Tour Eiffel": "photos/tour-eiffel.jpg"
+  // Ancien registre conservé pour compatibilité. Les nouvelles photos vérifiées sont dans data/place-photos.js.
   var PHOTOS = {};
+  var PLACE_PHOTOS = window.OCHANE_PLACE_PHOTOS || {};
 
   var ICONS = {
     grid: '<rect x="7" y="7" width="14" height="14" rx="2"/><rect x="27" y="7" width="14" height="14" rx="2"/><rect x="7" y="27" width="14" height="14" rx="2"/><rect x="27" y="27" width="14" height="14" rx="2"/>',
@@ -1218,11 +1220,12 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   function saveFavs() { try { localStorage.setItem(FAVKEY, JSON.stringify(favs)); } catch (e) {} }
   var DETAILS = window.OCHANE_DETAILS || {};
   function hasDetails(x) { return !!DETAILS[x.arr + "|" + x.name]; }
-  /* Photo vérifiée d'un lieu (fichier + auteur + licence renseignés dans data/place-details.js), sinon "" : on garde alors l'icône. */
-  function photoOf(x) {
-    var D = DETAILS[x.arr + "|" + x.name], p = D && D.photo;
-    return p && p.src && p.credit && p.license ? p.src : "";
+  /* Photo vérifiée d'un lieu (registre photo ou fiche détaillée), sinon l'icône reste visible. */
+  function placePhoto(x) {
+    var key = x.arr + "|" + x.name, D = DETAILS[key], p = PLACE_PHOTOS[key] || (D && D.photo);
+    return p && p.src && p.credit && p.license ? p : null;
   }
+  function photoOf(x) { var p = placePhoto(x); return p ? p.src : ""; }
   function favId(x) { return x.arr + "|" + x.name; }
   function favCount() { return Object.keys(favs).length; }
 
@@ -1527,11 +1530,11 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
   function safeUrl(u) { return /^https:\/\//i.test(u || "") ? u : ""; }
   function fx(title, inner, cls) { return inner ? '<section class="fx' + (cls ? " " + cls : "") + '"><h3>' + title + "</h3>" + inner + "</section>" : ""; }
   function ul(a) { return a && a.length ? "<ul>" + a.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" : ""; }
-  function richBody(D) {
-    var o = "", ph = D.photo && D.photo.src && D.photo.credit && D.photo.license ? D.photo : null;
+  function richBody(D, photo) {
+    var o = "", ph = photo || (D.photo && D.photo.src && D.photo.credit && D.photo.license ? D.photo : null);
     if (ph) {
       o += '<figure class="ph-fig"><img src="' + esc(ph.src) + '" alt="' + esc(ph.alt || "") + '" loading="lazy" onerror="var f=this.closest(\'figure\');if(f)f.remove()"><figcaption>Photo : ' + esc(ph.credit) + " — " + (safeUrl(ph.licenseUrl) ? '<a href="' + esc(ph.licenseUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(ph.license) + "</a>" : esc(ph.license)) +
-        (safeUrl(ph.source) ? ' · <a href="' + esc(ph.source) + '" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>' : "") + (ph.modified === false ? "" : " · image redimensionnée et recadrée") + "</figcaption></figure>";
+        (safeUrl(ph.source) ? ' · <a href="' + esc(ph.source) + '" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>' : "") + (ph.modified === false ? "" : " · " + esc(typeof ph.modified === "string" ? ph.modified : "image redimensionnée et recadrée")) + "</figcaption></figure>";
     }
     if (D.summary) o += '<p class="lead">' + esc(D.summary) + "</p>";
     var site = safeUrl(D.site), tk = safeUrl(D.tickets);
@@ -1560,13 +1563,13 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     var isFav = !!favs[favId(x)];
     var h = '<div class="sh cat-' + x.cat + '"><div class="top"><div><div class="kind">' + esc(SHORT[x.cat]) + " · " + ord(x.arr) + " arrondissement</div><h2 id=\"sh-name\">" + esc(x.name) + "</h2></div>" +
       '<button type="button" class="ibtn" id="sh-close" aria-label="Fermer la fiche"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
-    var D = DETAILS[favId(x)];
+    var D = DETAILS[favId(x)], ph = placePhoto(x);
     if (D) {
-      h += richBody(D);
+      h += richBody(D, ph);
     } else {
     if (x.flag === "f") h += '<p class="pending" style="color:var(--bad)">Fermé ou en travaux</p>';
     else if (x.flag === "v") h += '<p class="pending">À vérifier</p>';
-    if (PHOTOS[x.name]) h += '<img src="' + esc(PHOTOS[x.name]) + '" alt="" style="width:100%;border-radius:12px;margin-top:12px">';
+    if (ph) h += richBody({ photo: ph }, ph);
     var nr = [];
     h += '<p class="about">' + esc(x.about) + "</p><dl>" +
       (x.addr ? row("Adresse", esc(x.addr) + ", 750" + (x.arr < 10 ? "0" : "") + x.arr + " Paris") : "") +
@@ -1810,13 +1813,13 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
     $("hfavempty").hidden = l.length > 0;
     $("hfavrow").hidden = !l.length;
     $("hfavrow").innerHTML = l.slice(0, 3).map(function (x) {
-      var ph = PHOTOS[x.name];
+      var ph = photoOf(x);
       return '<button type="button" class="fv cat-' + x.cat + '" data-open="' + x.id + '">' + (ph ? '<img src="' + esc(ph) + '" alt="" loading="lazy">' : '<span class="fi">' + icon(iconFor(x), 28) + "</span>") + "<b>" + esc(x.name) + "</b><small>" + esc(SHORT[x.cat]) + "</small></button>";
     }).join("");
   }
   function renderInc() {
     $("incs").innerHTML = INC.map(byName).filter(Boolean).map(function (x) {
-      var ph = PHOTOS[x.name];
+      var ph = photoOf(x);
       return '<button type="button" class="in cat-' + x.cat + '" data-open="' + x.id + '">' + (ph ? '<img src="' + esc(ph) + '" alt="" loading="lazy">' : '<span class="fi">' + icon(iconFor(x), 36) + "</span>") + "<b>" + esc(x.name) + "</b><small>" + esc(SHORT[x.cat]) + "</small></button>";
     }).join("");
   }
@@ -2151,6 +2154,14 @@ html:not([data-theme="dark"]) .nv[aria-current="page"] { color: var(--gold); }
       .then(function (rows) {
         if (!rows || !rows.length) return;
         rows.forEach(function (r) { if (r.data && (r.data._deleted || r.data.archived || r.data.status === "draft")) delete DETAILS[r.key]; else if (r.data) DETAILS[r.key] = r.data; });
+        refresh();
+      }).catch(function () {});
+    /* Lieux ajoutés / modifiés / masqués depuis l'admin (mêmes champs que le mécanisme OV existant) */
+    fetch(C.supabaseUrl + "/rest/v1/place_overrides?select=id,data", { headers: { apikey: C.supabaseKey, Authorization: "Bearer " + C.supabaseKey } })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        if (!rows || !rows.length) return;
+        rows.forEach(function (r) { if (r.data && !r.data._deleted) OV.places[r.id] = r.data; });
         refresh();
       }).catch(function () {});
   })();
